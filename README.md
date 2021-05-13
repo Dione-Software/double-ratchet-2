@@ -1,5 +1,7 @@
 # double-ratchet-2
 
+![[crate](https://crates.io/crates/double-ratchet-2)](https://img.shields.io/crates/v/double-ratchet-2)
+
 Implementation of the double ratchet system/encryption as specified by [Signal][1].
 
 The implementation follows the cryptographic recommendations provided by [Signal][2].
