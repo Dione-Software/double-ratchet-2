@@ -18,15 +18,19 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build
-      run: cargo build --verbose
+      run: cargo +nightly build
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo +nightly test
     
   build2:
     runs-on: [macos-latest]
     
     steps:
     - uses: actions/checkout@v2
+    - name: Install Target iOS
+      run: rustup target add aarch64-apple-ios
+    - name: Install Target MacOS ARM
+      run: rustup target add aarch64-apple-darwin
     - name: Cross Build iOS
       run: cargo build --target aarch64-apple-ios
     - name: Cross Build MacOS ARM
