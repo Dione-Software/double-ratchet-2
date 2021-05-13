@@ -9,6 +9,7 @@ use crate::aead::{encrypt, decrypt};
 
 const MAX_SKIP: usize = 100;
 
+/// Object Representing Ratchet
 pub struct Ratchet {
     dhs: DhKeyPair,
     dhr: Option<PublicKey>,

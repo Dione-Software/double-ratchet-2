@@ -36,9 +36,9 @@ fn ratchet_enc_skip() {
 #[should_panic]
 fn ratchet_panic_bob() {
     let sk = [1; 32];
-    let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);
+    let (mut bob_ratchet, _) = Ratchet::init_bob(sk);
     let data = include_bytes!("../src/header.rs").to_vec();
-    let (header, encrypted) = bob_ratchet.ratchet_encrypt(&data);
+    let (_, _) = bob_ratchet.ratchet_encrypt(&data);
 }
 
 #[test]
