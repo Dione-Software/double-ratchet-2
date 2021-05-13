@@ -1,3 +1,7 @@
+//! [![Crate](https://img.shields.io/crates/v/double-ratchet-2)](https://crates.io/crates/double-ratchet-2)
+//! [![License](https://img.shields.io/github/license/Decentrailzed-Communication-System/double-ratchet-2)](https://github.com/Decentrailzed-Communication-System/double-ratchet-2/blob/main/LICENSE)
+//! [![Actions](https://img.shields.io/github/workflow/status/Decentrailzed-Communication-System/double-ratchet-2/Rust)](https://github.com/Decentrailzed-Communication-System/double-ratchet-2/actions)
+//!
 //! Implementation of the double ratchet system/encryption as specified by [Signal][1].
 //!
 //! The implementation follows the cryptographic recommendations provided by [Signal][2].

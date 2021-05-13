@@ -1,6 +1,8 @@
 # double-ratchet-2
 
-![[crate](https://crates.io/crates/double-ratchet-2)](https://img.shields.io/crates/v/double-ratchet-2)
+[![Crate](https://img.shields.io/crates/v/double-ratchet-2)](https://crates.io/crates/double-ratchet-2)
+[![License](https://img.shields.io/github/license/Decentrailzed-Communication-System/double-ratchet-2)](https://github.com/Decentrailzed-Communication-System/double-ratchet-2/blob/main/LICENSE)
+[![Actions](https://img.shields.io/github/workflow/status/Decentrailzed-Communication-System/double-ratchet-2/Rust)](https://github.com/Decentrailzed-Communication-System/double-ratchet-2/actions)
 
 Implementation of the double ratchet system/encryption as specified by [Signal][1].
 
@@ -94,3 +96,5 @@ TODO:
 [1]: https://signal.org/docs/specifications/doubleratchet/
 [2]: https://signal.org/docs/specifications/doubleratchet/#recommended-cryptographic-algorithms
 [3]: https://signal.org/docs/specifications/doubleratchet/#double-ratchet-with-header-encryption
+
+License: MIT
