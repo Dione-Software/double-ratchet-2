@@ -42,7 +42,7 @@ jobs:
         with:
           command: build
   
-  build-and-test-apple:
+  build-and-test-apple-silicon-mac:
     runs-on: [macos-latest]
     steps:
       - uses: actions/checkout@v2
@@ -51,7 +51,7 @@ jobs:
         with:
             toolchain: nightly
             override: true
-            target: aarch64-apple-darwin, aarch64-apple-ios
+            target: aarch64-apple-darwin
             components: rustfmt, clippy
       
       - name: Run cargo test
