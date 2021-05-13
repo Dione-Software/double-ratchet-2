@@ -23,6 +23,7 @@ pub struct Ratchet {
 }
 
 impl Ratchet {
+    /// Init Ratchet with other [PublicKey]. Initialized second.
     pub fn init_alice(sk: [u8; 32], bob_dh_public_key: PublicKey) -> Self {
         let dhs = DhKeyPair::new();
         let (rk, cks) = kdf_rk(&sk,
@@ -40,6 +41,7 @@ impl Ratchet {
         }
     }
 
+    /// Init Ratchet without other [PublicKey]. Initialized first. Returns [Ratchet] and [PublicKey].
     pub fn init_bob(sk: [u8; 32]) -> (Self, PublicKey) {
         let dhs = DhKeyPair::new();
         let public_key = dhs.public_key;
@@ -57,6 +59,7 @@ impl Ratchet {
         (ratchet, public_key)
     }
 
+    /// Encrypt Plaintext with [Ratchet]. Returns Message [Header] and ciphertext.
     pub fn ratchet_encrypt(&mut self, plaintext: &[u8]) -> (Header, Vec<u8>) {
         let (cks, mk) = kdf_ck(&self.cks.unwrap());
         self.cks = Some(cks);
@@ -95,6 +98,7 @@ impl Ratchet {
         }
     }
 
+    /// Decrypt ciphertext with ratchet. Requires Header. Returns plaintext.
     pub fn ratchet_decrypt(&mut self, header: &Header, ciphertext: &[u8]) -> Vec<u8> {
         let plaintext = self.try_skipped_message_keys(header, ciphertext);
         match plaintext {

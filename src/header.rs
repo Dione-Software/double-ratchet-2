@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 #[cfg(test)]
 use crate::dh::gen_key_pair;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Header {
     pub public_key: PublicKey,
     pub pn: usize, // Previous Chain Length
@@ -20,7 +20,9 @@ struct ExHeader {
     n: usize
 }
 
+// Message Header
 impl Header {
+    #[doc(hidden)]
     pub fn new(dh_pair: &DhKeyPair, pn: usize, n: usize) -> Self {
         Header {
             public_key: dh_pair.public_key,
@@ -28,7 +30,7 @@ impl Header {
             n,
         }
     }
-
+    #[doc(hidden)]
     pub fn concat(&self) -> Vec<u8> {
         let ex_header = ExHeader{
             public_key: self.public_key.to_bytes(),
@@ -58,6 +60,12 @@ impl From<&[u8]> for Header {
             pn: ex_header.pn,
             n: ex_header.n,
         }
+    }
+}
+
+impl Into<Vec<u8>> for Header {
+    fn into(self) -> Vec<u8> {
+        self.concat()
     }
 }
 
