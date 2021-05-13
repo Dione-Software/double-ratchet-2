@@ -1,0 +1,34 @@
+name: Rust
+
+on:
+  push
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+    
+  build2:
+    runs-on: [macos-latest]
+    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cross Build iOS
+      run: cargo build --target aarch64-apple-ios
+    - name: Cross Build MacOS ARM
+      run: cargo build --target aarch64-apple-darwin
+    
