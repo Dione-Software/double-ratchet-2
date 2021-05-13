@@ -16,23 +16,28 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: cargo +nightly build
-    - name: Run tests
-      run: cargo +nightly test
-    
-  build2:
-    runs-on: [macos-latest]
-    
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install Target iOS
-      run: rustup target add aarch64-apple-ios
-    - name: Install Target MacOS ARM
-      run: rustup target add aarch64-apple-darwin
-    - name: Cross Build iOS
-      run: cargo build --target aarch64-apple-ios
-    - name: Cross Build MacOS ARM
-      run: cargo build --target aarch64-apple-darwin
-    
+      - uses: actions/checkout@v2
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: nightly
+            override: true
+            components: rustfmt, clippy
+
+      # `cargo check` command here will use installed `nightly`
+      # as it is set as an "override" for current directory
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+      
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+      
+      - name: Run cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
