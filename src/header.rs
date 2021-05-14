@@ -18,6 +18,8 @@ pub struct Header {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct ExHeader {
+    #[serde(with = "serde_bytes")]
+    ad: Vec<u8>,
     public_key: [u8; 32],
     pn: usize,
     n: usize
@@ -34,8 +36,9 @@ impl Header {
         }
     }
     // #[doc(hidden)]
-    pub fn concat(&self) -> Vec<u8> {
-        let ex_header = ExHeader{
+    pub fn concat(&self, ad: &[u8]) -> Vec<u8> {
+        let ex_header = ExHeader {
+            ad: ad.to_vec(),
             public_key: self.public_key.to_bytes(),
             pn: self.pn,
             n: self.n
@@ -43,8 +46,8 @@ impl Header {
         bincode::serialize(&ex_header).expect("Failed to serialize Header")
     }
 
-    pub fn encrypt(&self, hk: &[u8; 32]) -> (Vec<u8>, [u8; 12]) {
-        let header_data = self.concat();
+    pub fn encrypt(&self, hk: &[u8; 32], ad: &[u8]) -> (Vec<u8>, [u8; 12]) {
+        let header_data = self.concat(ad);
         encrypt(hk, &header_data, b"")
     }
 
@@ -95,7 +98,7 @@ impl From<&[u8]> for Header {
 
 impl From<Header> for Vec<u8> {
     fn from(s: Header) -> Self {
-        s.concat()
+        s.concat(b"")
     }
 }
 
@@ -126,8 +129,9 @@ mod tests {
 
     #[test]
     fn ser_des() {
+        let ad = b"";
         let header = gen_header();
-        let serialized = header.concat();
+        let serialized = header.concat(ad);
         let created = Header::from(serialized);
         assert_eq!(header, created)
     }
@@ -136,7 +140,7 @@ mod tests {
     fn enc_header() {
         let header = gen_header();
         let mk = gen_mk();
-        let header_data = header.concat();
+        let header_data = header.concat(b"");
         let data = include_bytes!("aead.rs");
         let (encrypted, nonce) = encrypt(&mk, data, &header_data);
         let decrypted = decrypt(&mk, &encrypted, &header_data, &nonce);

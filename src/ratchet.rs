@@ -65,21 +65,21 @@ impl Ratchet {
     }
 
     /// Encrypt Plaintext with [Ratchet]. Returns Message [Header] and ciphertext.
-    pub fn ratchet_encrypt(&mut self, plaintext: &[u8]) -> (Header, Vec<u8>, [u8; 12]) {
+    pub fn ratchet_encrypt(&mut self, plaintext: &[u8], ad: &[u8]) -> (Header, Vec<u8>, [u8; 12]) {
         let (cks, mk) = kdf_ck(&self.cks.unwrap());
         self.cks = Some(cks);
         let header = Header::new(&self.dhs, self.pn, self.ns);
         self.ns += 1;
-        let (encrypted_data, nonce) = encrypt(&mk, plaintext, &header.concat());
+        let (encrypted_data, nonce) = encrypt(&mk, plaintext, &header.concat(ad));
         (header, encrypted_data, nonce)
     }
 
-    fn try_skipped_message_keys(&mut self, header: &Header, ciphertext: &[u8], nonce: &[u8; 12]) -> Option<Vec<u8>> {
+    fn try_skipped_message_keys(&mut self, header: &Header, ciphertext: &[u8], nonce: &[u8; 12], ad: &[u8]) -> Option<Vec<u8>> {
         if self.mkskipped.contains_key(&(header.public_key, header.n)) {
             let mk = *self.mkskipped.get(&(header.public_key, header.n))
                 .unwrap();
             self.mkskipped.remove(&(header.public_key, header.n)).unwrap();
-            Some(decrypt(&mk, ciphertext, &header.concat(), nonce))
+            Some(decrypt(&mk, ciphertext, &header.concat(ad), nonce))
         } else {
             None
         }
@@ -104,8 +104,8 @@ impl Ratchet {
     }
 
     /// Decrypt ciphertext with ratchet. Requires Header. Returns plaintext.
-    pub fn ratchet_decrypt(&mut self, header: &Header, ciphertext: &[u8], nonce: &[u8; 12]) -> Vec<u8> {
-        let plaintext = self.try_skipped_message_keys(header, ciphertext, nonce);
+    pub fn ratchet_decrypt(&mut self, header: &Header, ciphertext: &[u8], nonce: &[u8; 12], ad: &[u8]) -> Vec<u8> {
+        let plaintext = self.try_skipped_message_keys(header, ciphertext, nonce, ad);
         match plaintext {
             Some(d) => d,
             None => {
@@ -119,7 +119,7 @@ impl Ratchet {
                 let (ckr, mk) = kdf_ck(&self.ckr.unwrap());
                 self.ckr = Some(ckr);
                 self.nr += 1;
-                decrypt(&mk, ciphertext, &header.concat(), nonce)
+                decrypt(&mk, ciphertext, &header.concat(ad), nonce)
             }
         }
     }
@@ -202,18 +202,18 @@ impl RatchetEncHeader {
         (ratchet, public_key)
     }
 
-    pub fn ratchet_encrypt(&mut self, plaintext: &[u8]) -> HeaderNonceCipherNonce {
+    pub fn ratchet_encrypt(&mut self, plaintext: &[u8], ad: &[u8]) -> HeaderNonceCipherNonce {
         let (cks, mk) = kdf_ck(&self.cks.unwrap());
         self.cks = Some(cks);
         let header = Header::new(&self.dhs, self.pn, self.ns);
-        let enc_header = header.encrypt(&self.hks.unwrap());
+        let enc_header = header.encrypt(&self.hks.unwrap(), ad);
         self.ns += 1;
-        let encrypted = encrypt(&mk, plaintext, &header.concat());
+        let encrypted = encrypt(&mk, plaintext, &header.concat(ad));
         (enc_header, encrypted.0, encrypted.1)
     }
 
     fn try_skipped_message_keys(&mut self, enc_header: &(Vec<u8>, [u8; 12]),
-                                ciphertext: &[u8], nonce: &[u8; 12]) -> Option<Vec<u8>> {
+                                ciphertext: &[u8], nonce: &[u8; 12], ad: &[u8]) -> Option<Vec<u8>> {
 
         let ret_data = self.mkskipped.clone().into_iter().find(|e| {
             let header = Header::decrypt(&e.0.0, &enc_header.0, &enc_header.1);
@@ -228,7 +228,7 @@ impl RatchetEncHeader {
                 let header = Header::decrypt(&data.0.0, &enc_header.0, &enc_header.1);
                 let mk = data.1;
                 self.mkskipped.remove(&(data.0.0, data.0.1));
-                Some(decrypt(&mk, ciphertext, &header.unwrap().concat(), nonce))
+                Some(decrypt(&mk, ciphertext, &header.unwrap().concat(ad), nonce))
             }
         }
     }
@@ -278,8 +278,8 @@ impl RatchetEncHeader {
         self.nhks = Some(nhks);
     }
 
-    pub fn ratchet_decrypt(&mut self, enc_header: &(Vec<u8>, [u8; 12]), ciphertext: &[u8], nonce: &[u8; 12]) -> Vec<u8> {
-        let plaintext = self.try_skipped_message_keys(enc_header, ciphertext, nonce);
+    pub fn ratchet_decrypt(&mut self, enc_header: &(Vec<u8>, [u8; 12]), ciphertext: &[u8], nonce: &[u8; 12], ad: &[u8]) -> Vec<u8> {
+        let plaintext = self.try_skipped_message_keys(enc_header, ciphertext, nonce, ad);
         if let Some(d) = plaintext { return d };
         let (header, dh_ratchet) = self.decrypt_header(enc_header).unwrap();
         if dh_ratchet {
@@ -290,6 +290,6 @@ impl RatchetEncHeader {
         let (ckr, mk) = kdf_ck(&self.ckr.unwrap());
         self.ckr = Some(ckr);
         self.nr += 1;
-        decrypt(&mk, ciphertext, &header.concat(), nonce)
+        decrypt(&mk, ciphertext, &header.concat(ad), nonce)
     }
 }
