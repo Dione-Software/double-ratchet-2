@@ -3,7 +3,7 @@ use hmac::{Hmac, Mac, NewMac};
 #[cfg(feature = "ring")]
 use ring_compat::digest::Sha512;
 
-#[cfg(feature = "default")]
+#[cfg(not(feature = "ring"))]
 use sha2::Sha512;
 
 use core::convert::TryInto;
