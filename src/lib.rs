@@ -89,6 +89,23 @@
 //! assert_eq!(header, header_const);
 //! ```
 //!
+//! # Example Ratchet with encrypted headers
+//!
+//! ```
+//! use double_ratchet_2::ratchet::RatchetEncHeader;
+//! let sk = [0; 32];
+//! let shared_hka = [1; 32];
+//! let shared_nhkb = [2; 32];
+//!
+//! let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk, shared_hka, shared_nhkb);
+//! let mut alice_ratchet = RatchetEncHeader::init_alice(sk, public_key, shared_hka, shared_nhkb);
+//! let data = b"Hello World".to_vec();
+//!
+//! let (header, encrypted, nonce) = alice_ratchet.ratchet_encrypt(&data);
+//! let decrypted = bob_ratchet.ratchet_decrypt(&header, &encrypted, &nonce);
+//! assert_eq!(data, decrypted)
+//! ```
+//!
 //! # Features
 //!
 //! Currently the crate only supports one feature: ring. If feature is enabled the crate switches

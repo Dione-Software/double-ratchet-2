@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use serde::{Serialize, Deserialize};
 use crate::aead::encrypt;
 use aes_gcm_siv::{Key, Nonce, Aes256GcmSiv};
-use aes_gcm_siv::aead::{NewAead, AeadInPlace, Error};
+use aes_gcm_siv::aead::{NewAead, AeadInPlace};
 
 #[cfg(test)]
 use crate::dh::gen_key_pair;
@@ -93,9 +93,9 @@ impl From<&[u8]> for Header {
     }
 }
 
-impl Into<Vec<u8>> for Header {
-    fn into(self) -> Vec<u8> {
-        self.concat()
+impl From<Header> for Vec<u8> {
+    fn from(s: Header) -> Self {
+        s.concat()
     }
 }
 

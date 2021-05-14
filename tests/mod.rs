@@ -112,7 +112,7 @@ fn ratchet_ench_panic_bob() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
     let shared_nhkb = [3; 32];
-    let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+    let (mut bob_ratchet, _) = RatchetEncHeader::init_bob(sk,
                                                                    shared_hka,
                                                                    shared_nhkb);
     let data = include_bytes!("../src/header.rs").to_vec();

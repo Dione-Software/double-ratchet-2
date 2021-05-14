@@ -12,6 +12,8 @@ use crate::aead::{encrypt, decrypt};
 
 const MAX_SKIP: usize = 100;
 
+type HeaderNonceCipherNonce = ((Vec<u8>, [u8; 12]), Vec<u8>, [u8; 12]);
+
 /// Object Representing Ratchet
 pub struct Ratchet {
     dhs: DhKeyPair,
@@ -200,7 +202,7 @@ impl RatchetEncHeader {
         (ratchet, public_key)
     }
 
-    pub fn ratchet_encrypt(&mut self, plaintext: &[u8]) -> ((Vec<u8>, [u8; 12]), Vec<u8>, [u8; 12]) {
+    pub fn ratchet_encrypt(&mut self, plaintext: &[u8]) -> HeaderNonceCipherNonce {
         let (cks, mk) = kdf_ck(&self.cks.unwrap());
         self.cks = Some(cks);
         let header = Header::new(&self.dhs, self.pn, self.ns);
@@ -212,28 +214,28 @@ impl RatchetEncHeader {
 
     fn try_skipped_message_keys(&mut self, enc_header: &(Vec<u8>, [u8; 12]),
                                 ciphertext: &[u8], nonce: &[u8; 12]) -> Option<Vec<u8>> {
-        for ((hk, n), mk) in self.mkskipped.iter() {
-            let header = Header::decrypt(hk, &enc_header.0, &enc_header.1);
+
+        let ret_data = self.mkskipped.clone().into_iter().find(|e| {
+            let header = Header::decrypt(&e.0.0, &enc_header.0, &enc_header.1);
             match header {
-                None => { continue },
-                Some(h) => {
-                    if h.n == *n {
-                        let mk = mk.clone();
-                        self.mkskipped.remove(&(*hk, *n));
-                        return Some(decrypt(&mk, ciphertext, &h.concat(), nonce))
-                    }
-                }
+                None => false,
+                Some(h) => h.n == e.0.1
+            }
+        });
+        match ret_data {
+            None => { None },
+            Some(data) => {
+                let header = Header::decrypt(&data.0.0, &enc_header.0, &enc_header.1);
+                let mk = data.1;
+                self.mkskipped.remove(&(data.0.0, data.0.1));
+                Some(decrypt(&mk, ciphertext, &header.unwrap().concat(), nonce))
             }
         }
-        None
     }
 
     fn decrypt_header(&mut self, enc_header: &(Vec<u8>, [u8; 12])) -> Result<(Header, bool), &str> {
         let header = Header::decrypt(&self.hkr, &enc_header.0, &enc_header.1);
-        match header {
-            Some(h) => { return Ok((h, false)) },
-            None => {},
-        }
+        if let Some(h) = header { return Ok((h, false)) };
         let header = Header::decrypt(&self.nhkr, &enc_header.0, &enc_header.1);
         match header {
             Some(h) => Ok((h, true)),
@@ -245,16 +247,13 @@ impl RatchetEncHeader {
         if self.nr + MAX_SKIP < until {
             return Err("Skipping went wrong")
         }
-        match self.ckr {
-            Some(d) => {
-                while self.nr < until {
-                    let (ckr, mk) = kdf_ck(&d);
-                    self.ckr = Some(ckr);
-                    self.mkskipped.insert((self.hkr, self.nr), mk);
-                    self.nr += 1
-                }
+        if let Some(d) = self.ckr {
+            while self.nr < until {
+                let (ckr, mk) = kdf_ck(&d);
+                self.ckr = Some(ckr);
+                self.mkskipped.insert((self.hkr, self.nr), mk);
+                self.nr += 1
             }
-            None => {}
         }
         Ok(())
     }
@@ -281,10 +280,7 @@ impl RatchetEncHeader {
 
     pub fn ratchet_decrypt(&mut self, enc_header: &(Vec<u8>, [u8; 12]), ciphertext: &[u8], nonce: &[u8; 12]) -> Vec<u8> {
         let plaintext = self.try_skipped_message_keys(enc_header, ciphertext, nonce);
-        match plaintext {
-            Some(d) => { return d },
-            None => {}
-        };
+        if let Some(d) = plaintext { return d };
         let (header, dh_ratchet) = self.decrypt_header(enc_header).unwrap();
         if dh_ratchet {
             self.skip_message_keys(header.pn).unwrap();

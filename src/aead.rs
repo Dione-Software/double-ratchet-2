@@ -3,8 +3,6 @@ use aes_gcm_siv::aead::{NewAead, AeadInPlace};
 use alloc::vec::Vec;
 use rand_core::{OsRng, RngCore};
 
-const CONSTANT_NONCE: &[u8] = b"Super Noncel";
-
 pub fn encrypt(mk: &[u8; 32], plaintext: &[u8], associated_data: &[u8]) -> (Vec<u8>, [u8; 12]) {
     let key = Key::from_slice(mk);
     let cipher = Aes256GcmSiv::new(key);
