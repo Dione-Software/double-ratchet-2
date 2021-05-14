@@ -2,6 +2,9 @@ use x25519_dalek::PublicKey;
 use crate::dh::DhKeyPair;
 use alloc::vec::Vec;
 use serde::{Serialize, Deserialize};
+use crate::aead::encrypt;
+use aes_gcm_siv::{Key, Nonce, Aes256GcmSiv};
+use aes_gcm_siv::aead::{NewAead, AeadInPlace, Error};
 
 #[cfg(test)]
 use crate::dh::gen_key_pair;
@@ -22,7 +25,7 @@ struct ExHeader {
 
 // Message Header
 impl Header {
-    #[doc(hidden)]
+    // #[doc(hidden)]
     pub fn new(dh_pair: &DhKeyPair, pn: usize, n: usize) -> Self {
         Header {
             public_key: dh_pair.public_key,
@@ -30,7 +33,7 @@ impl Header {
             n,
         }
     }
-    #[doc(hidden)]
+    // #[doc(hidden)]
     pub fn concat(&self) -> Vec<u8> {
         let ex_header = ExHeader{
             public_key: self.public_key.to_bytes(),
@@ -38,6 +41,33 @@ impl Header {
             n: self.n
         };
         bincode::serialize(&ex_header).expect("Failed to serialize Header")
+    }
+
+    pub fn encrypt(&self, hk: &[u8; 32]) -> (Vec<u8>, [u8; 12]) {
+        let header_data = self.concat();
+        encrypt(hk, &header_data, b"")
+    }
+
+    pub fn decrypt(hk: &Option<[u8; 32]>, ciphertext: &[u8], nonce: &[u8; 12]) -> Option<Self> {
+        let key_d = match hk {
+            None => {
+                return None
+            },
+            Some(d) => d
+        };
+        let key = Key::from_slice(key_d);
+        let cipher = Aes256GcmSiv::new(key);
+
+        let nonce = Nonce::from_slice(nonce);
+        let mut buffer = Vec::new();
+        buffer.extend_from_slice(ciphertext);
+        match cipher.decrypt_in_place(nonce, b"", &mut buffer) {
+            Ok(_) => {}
+            Err(_) => {
+                return None
+            }
+        };
+        Some(Header::from(buffer))
     }
 }
 
@@ -108,8 +138,8 @@ mod tests {
         let mk = gen_mk();
         let header_data = header.concat();
         let data = include_bytes!("aead.rs");
-        let encrypted = encrypt(&mk, data, &header_data);
-        let decrypted = decrypt(&mk, &encrypted, &header_data);
+        let (encrypted, nonce) = encrypt(&mk, data, &header_data);
+        let decrypted = decrypt(&mk, &encrypted, &header_data, &nonce);
         assert_eq!(decrypted, data.to_vec())
     }
 }

@@ -18,8 +18,8 @@
 //! let mut alice_ratchet = Ratchet::init_alice(sk, public_key);      // Creating Alice Ratchet with Bobs PublicKey
 //! let data = b"Hello World".to_vec();                               // Data to be encrypted
 //!
-//! let (header, encrypted) = alice_ratchet.ratchet_encrypt(&data);   // Encrypting message with Alice Ratchet (Alice always needs to send the first message)
-//! let decrypted = bob_ratchet.ratchet_decrypt(&header, &encrypted); // Decrypt message with Bobs Ratchet
+//! let (header, encrypted, nonce) = alice_ratchet.ratchet_encrypt(&data);   // Encrypting message with Alice Ratchet (Alice always needs to send the first message)
+//! let decrypted = bob_ratchet.ratchet_decrypt(&header, &encrypted, &nonce); // Decrypt message with Bobs Ratchet
 //! assert_eq!(data, decrypted)
 //! ```
 //!
@@ -32,11 +32,11 @@
 //! let mut alice_ratchet = Ratchet::init_alice(sk, public_key);      // Creating Alice Ratchet with Bobs PublicKey
 //! let data = b"Hello World".to_vec();                               // Data to be encrypted
 //!
-//! let (header1, encrypted1) = alice_ratchet.ratchet_encrypt(&data); // Lost message
-//! let (header2, encrypted2) = alice_ratchet.ratchet_encrypt(&data); // Successful message
+//! let (header1, encrypted1, nonce1) = alice_ratchet.ratchet_encrypt(&data); // Lost message
+//! let (header2, encrypted2, nonce2) = alice_ratchet.ratchet_encrypt(&data); // Successful message
 //!
-//! let decrypted2 = bob_ratchet.ratchet_decrypt(&header2, &encrypted2); // Decrypting second message first
-//! let decrypted1 = bob_ratchet.ratchet_decrypt(&header1, &encrypted1); // Decrypting latter message
+//! let decrypted2 = bob_ratchet.ratchet_decrypt(&header2, &encrypted2, &nonce2); // Decrypting second message first
+//! let decrypted1 = bob_ratchet.ratchet_decrypt(&header1, &encrypted1, &nonce1); // Decrypting latter message
 //!
 //! let comp = decrypted1 == data && decrypted2 == data;
 //! assert!(comp);
@@ -51,7 +51,7 @@
 //! let (mut bob_ratchet, _) = Ratchet::init_bob(sk);
 //! let data = b"Hello World".to_vec();
 //!
-//! let (_, _) = bob_ratchet.ratchet_encrypt(&data);
+//! let (_, _, _) = bob_ratchet.ratchet_encrypt(&data);
 //! ```
 //!
 //! ## Encryption after recieving initial message
@@ -66,11 +66,11 @@
 //!
 //! let data = b"Hello World".to_vec();
 //!
-//! let (header1, encrypted1) = alice_ratchet.ratchet_encrypt(&data);
-//! let _decrypted1 = bob_ratchet.ratchet_decrypt(&header1, &encrypted1);
+//! let (header1, encrypted1, nonce1) = alice_ratchet.ratchet_encrypt(&data);
+//! let _decrypted1 = bob_ratchet.ratchet_decrypt(&header1, &encrypted1, &nonce1);
 //!
-//! let (header2, encrypted2) = bob_ratchet.ratchet_encrypt(&data);
-//! let decrypted2 = alice_ratchet.ratchet_decrypt(&header2, &encrypted2);
+//! let (header2, encrypted2, nonce2) = bob_ratchet.ratchet_encrypt(&data);
+//! let decrypted2 = alice_ratchet.ratchet_decrypt(&header2, &encrypted2, &nonce2);
 //!
 //! assert_eq!(data, decrypted2);
 //! ```
@@ -83,7 +83,7 @@
 //! # let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);
 //! # let mut alice_ratchet = Ratchet::init_alice(sk, public_key);
 //! # let data = b"hello World".to_vec();
-//! # let (header, _) = alice_ratchet.ratchet_encrypt(&data);
+//! # let (header, _, _) = alice_ratchet.ratchet_encrypt(&data);
 //! let header_bytes: Vec<u8> = header.clone().into();
 //! let header_const = Header::from(header_bytes);
 //! assert_eq!(header, header_const);
@@ -97,7 +97,7 @@
 //!
 //! TODO:
 //! - [x] Standard Double Ratchet
-//! - [ ] [Double Ratchet with encrypted headers][3]
+//! - [x] [Double Ratchet with encrypted headers][3]
 //!
 //! [1]: https://signal.org/docs/specifications/doubleratchet/
 //! [2]: https://signal.org/docs/specifications/doubleratchet/#recommended-cryptographic-algorithms
@@ -115,7 +115,6 @@ mod dh;
 mod kdf_root;
 mod kdf_chain;
 
-/// Providing essential functions
 pub mod ratchet;
 
 /// Message Header
