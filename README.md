@@ -7,7 +7,6 @@
 Implementation of the double ratchet system/encryption as specified by [Signal][1].
 
 The implementation follows the cryptographic recommendations provided by [Signal][2].
-The AEAD Algorithm uses a constant Nonce. This might be changed in the future.
 
 ## Example Usage:
 
