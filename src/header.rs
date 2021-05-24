@@ -1,4 +1,4 @@
-use x25519_dalek::PublicKey;
+use p256::PublicKey;
 use crate::dh::DhKeyPair;
 use alloc::vec::Vec;
 use serde::{Serialize, Deserialize};
@@ -8,6 +8,8 @@ use aes_gcm_siv::aead::{NewAead, AeadInPlace};
 
 #[cfg(test)]
 use crate::dh::gen_key_pair;
+use alloc::string::{ToString, String};
+use core::str::FromStr;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Header {
@@ -20,7 +22,7 @@ pub struct Header {
 struct ExHeader {
     #[serde(with = "serde_bytes")]
     ad: Vec<u8>,
-    public_key: [u8; 32],
+    public_key: Vec<u8>,
     pn: usize,
     n: usize
 }
@@ -39,7 +41,7 @@ impl Header {
     pub fn concat(&self, ad: &[u8]) -> Vec<u8> {
         let ex_header = ExHeader {
             ad: ad.to_vec(),
-            public_key: self.public_key.to_bytes(),
+            public_key: self.public_key.to_string().as_bytes().to_vec(),
             pn: self.pn,
             n: self.n
         };
@@ -72,13 +74,17 @@ impl Header {
         };
         Some(Header::from(buffer))
     }
+    pub fn ex_public_key_bytes(&self) -> Vec<u8> {
+        self.public_key.to_string().as_bytes().to_vec()
+    }
 }
 
 impl From<Vec<u8>> for Header {
     fn from(d: Vec<u8>) -> Self {
         let ex_header: ExHeader = bincode::deserialize(&d).unwrap();
+        let public_key_string = String::from_utf8(ex_header.public_key).unwrap();
         Header {
-            public_key: PublicKey::from(ex_header.public_key),
+            public_key: PublicKey::from_str(&public_key_string).unwrap(),
             pn: ex_header.pn,
             n: ex_header.n,
         }
@@ -88,8 +94,9 @@ impl From<Vec<u8>> for Header {
 impl From<&[u8]> for Header {
     fn from(d: &[u8]) -> Self {
         let ex_header: ExHeader = bincode::deserialize(d).unwrap();
+        let public_key_string = String::from_utf8(ex_header.public_key).unwrap();
         Header {
-            public_key: PublicKey::from(ex_header.public_key),
+            public_key: PublicKey::from_str(&public_key_string).unwrap(),
             pn: ex_header.pn,
             n: ex_header.n,
         }

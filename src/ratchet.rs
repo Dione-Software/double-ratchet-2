@@ -2,13 +2,14 @@
 //!
 
 use crate::dh::DhKeyPair;
-use x25519_dalek::PublicKey;
+use p256::PublicKey;
 use hashbrown::HashMap;
 use crate::kdf_root::{kdf_rk, kdf_rk_he};
 use crate::header::Header;
 use alloc::vec::Vec;
 use crate::kdf_chain::kdf_ck;
 use crate::aead::{encrypt, decrypt};
+use alloc::string::ToString;
 
 const MAX_SKIP: usize = 100;
 
@@ -24,7 +25,7 @@ pub struct Ratchet {
     ns: usize,
     nr: usize,
     pn: usize,
-    mkskipped: HashMap<(PublicKey, usize), [u8; 32]>,
+    mkskipped: HashMap<(Vec<u8>, usize), [u8; 32]>,
 }
 
 impl Ratchet {
@@ -75,10 +76,10 @@ impl Ratchet {
     }
 
     fn try_skipped_message_keys(&mut self, header: &Header, ciphertext: &[u8], nonce: &[u8; 12], ad: &[u8]) -> Option<Vec<u8>> {
-        if self.mkskipped.contains_key(&(header.public_key, header.n)) {
-            let mk = *self.mkskipped.get(&(header.public_key, header.n))
+        if self.mkskipped.contains_key(&(header.ex_public_key_bytes(), header.n)) {
+            let mk = *self.mkskipped.get(&(header.ex_public_key_bytes(), header.n))
                 .unwrap();
-            self.mkskipped.remove(&(header.public_key, header.n)).unwrap();
+            self.mkskipped.remove(&(header.ex_public_key_bytes(), header.n)).unwrap();
             Some(decrypt(&mk, ciphertext, &header.concat(ad), nonce))
         } else {
             None
@@ -94,7 +95,7 @@ impl Ratchet {
                 while self.nr < until {
                     let (ckr, mk) = kdf_ck(&d);
                     self.ckr = Some(ckr);
-                    self.mkskipped.insert((self.dhr.unwrap(), self.nr), mk);
+                    self.mkskipped.insert((self.dhr.unwrap().to_string().as_bytes().to_vec(), self.nr), mk);
                     self.nr += 1
                 }
                 Ok(())
