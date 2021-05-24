@@ -1,4 +1,4 @@
-use x25519_dalek::SharedSecret;
+
 use hkdf::Hkdf;
 
 #[cfg(feature = "ring")]
@@ -11,6 +11,7 @@ use core::convert::TryInto;
 
 #[cfg(test)]
 use crate::dh::gen_shared_secret;
+use p256::ecdh::SharedSecret;
 
 pub fn kdf_rk(rk: &[u8; 32], dh_out: &SharedSecret) -> ([u8; 32], [u8; 32]) {
     let h = Hkdf::<Sha512>::new(Some(rk), dh_out.as_bytes());

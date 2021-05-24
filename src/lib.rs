@@ -130,7 +130,7 @@
 
 extern crate alloc;
 
-pub use x25519_dalek::PublicKey;
+pub use p256::PublicKey;
 
 mod aead;
 mod dh;

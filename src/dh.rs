@@ -1,11 +1,22 @@
-use x25519_dalek::{PublicKey, SharedSecret, StaticSecret};
 use rand_core::OsRng;
 use core::fmt::{Debug, Formatter};
 use core::fmt;
+use p256::PublicKey as PublicKey;
+use p256::ecdh::SharedSecret;
+use p256::SecretKey;
+use alloc::vec::Vec;
+use alloc::string::ToString;
+use p256::elliptic_curve::ecdh::diffie_hellman;
 
 pub struct DhKeyPair {
-    pub private_key: StaticSecret,
+    pub private_key: SecretKey,
     pub public_key: PublicKey,
+}
+
+impl DhKeyPair {
+    fn ex_public_key_bytes(&self) -> Vec<u8> {
+        self.public_key.to_string().as_bytes().to_vec()
+    }
 }
 
 impl PartialEq for DhKeyPair {
@@ -13,7 +24,7 @@ impl PartialEq for DhKeyPair {
         if self.private_key.to_bytes() != other.private_key.to_bytes() {
             return false
         }
-        if self.public_key.to_bytes() != other.public_key.to_bytes() {
+        if self.ex_public_key_bytes() != other.ex_public_key_bytes() {
             return false
         }
         true
@@ -24,7 +35,7 @@ impl Debug for DhKeyPair {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.debug_struct("DhKeyPair")
             .field("private_key", &self.private_key.to_bytes())
-            .field("public_key", &self.public_key.to_bytes())
+            .field("public_key", &self.ex_public_key_bytes())
             .finish()
     }
 }
@@ -37,8 +48,8 @@ impl Default for DhKeyPair {
 
 impl DhKeyPair {
     pub fn new() -> Self {
-        let secret = StaticSecret::new(OsRng);
-        let public = PublicKey::from(&secret);
+        let secret = SecretKey::random(&mut OsRng);
+        let public = PublicKey::from_secret_scalar(&secret.secret_scalar());
         DhKeyPair {
             private_key: secret,
             public_key: public,
@@ -46,7 +57,7 @@ impl DhKeyPair {
     }
 
     pub fn key_agreement(&self, public_key: &PublicKey) -> SharedSecret {
-        self.private_key.diffie_hellman(public_key)
+        diffie_hellman(self.private_key.secret_scalar(), public_key.as_affine())
     }
 }
 
