@@ -13,7 +13,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-p256 = {version = "0.8.1", features = ["zeroize", "ecdh", "arithmetic", "pem"]}
+p256 = {version = "0.9.0", features = ["zeroize", "ecdh", "arithmetic", "pem"]}
 rand_core = {version = "0.6", features = ["getrandom"]}
 hkdf = "0.11.0"
 hmac = "0.11.0"
