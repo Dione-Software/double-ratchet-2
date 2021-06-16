@@ -10,6 +10,7 @@ use alloc::vec::Vec;
 use crate::kdf_chain::kdf_ck;
 use crate::aead::{encrypt, decrypt};
 use alloc::string::ToString;
+use zeroize::Zeroize;
 
 const MAX_SKIP: usize = 100;
 
@@ -26,6 +27,25 @@ pub struct Ratchet {
     nr: usize,
     pn: usize,
     mkskipped: HashMap<(Vec<u8>, usize), [u8; 32]>,
+}
+
+impl Drop for Ratchet {
+    fn drop(&mut self) {
+        core::mem::drop(&mut self.dhs);
+        match self.dhr {
+            Some(d) => {
+                core::mem::drop(d);
+            },
+            None => {}
+        }
+        self.rk.zeroize();
+        self.ckr.zeroize();
+        self.cks.zeroize();
+        self.ns.zeroize();
+        self.nr.zeroize();
+        self.pn.zeroize();
+        self.mkskipped.clear();
+    }
 }
 
 impl Ratchet {
@@ -156,6 +176,31 @@ pub struct RatchetEncHeader {
     nhks: Option<[u8; 32]>,
     nhkr: Option<[u8; 32]>,
     mkskipped: HashMap<(Option<[u8; 32]>, usize), [u8; 32]>
+}
+
+impl Zeroize for RatchetEncHeader {
+    fn zeroize(&mut self) {
+        self.dhs.zeroize();
+        core::mem::drop(self.dhr);
+        self.rk.zeroize();
+        self.cks.zeroize();
+        self.ckr.zeroize();
+        self.ns.zeroize();
+        self.nr.zeroize();
+        self.pn.zeroize();
+        self.hks.zeroize();
+        self.hkr.zeroize();
+        self.nhks.zeroize();
+        self.nhkr.zeroize();
+        self.mkskipped.clear();
+
+    }
+}
+
+impl Drop for RatchetEncHeader {
+    fn drop(&mut self) {
+        self.zeroize();
+    }
 }
 
 impl RatchetEncHeader {

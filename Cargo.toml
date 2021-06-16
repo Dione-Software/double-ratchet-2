@@ -2,18 +2,18 @@
 name = "double-ratchet-2"
 authors = ["Hannes Furmans"]
 description = "Implementation of Double Ratchet as specified by Signal."
-homepage = "https://github.com/Decentrailzed-Communication-System/double-ratchet-2"
-repository = "https://github.com/Decentrailzed-Communication-System/double-ratchet-2"
+homepage = "https://github.com/Dione-Software/double-ratchet-2"
+repository = "https://github.com/Dione-Software/double-ratchet-2"
 readme = "README.md"
 keywords = ["double-ratchet", "crypto", "cryptography", "signal"]
-version = "0.3.0"
+version = "0.3.1"
 edition = "2018"
 license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-p256 = {version = "0.8.1", features = ["zeroize", "ecdh", "arithmetic", "pem"]}
+p256 = {version = "0.9", features = ["zeroize", "ecdh", "arithmetic", "pem"]}
 rand_core = {version = "0.6", features = ["getrandom"]}
 hkdf = "0.11.0"
 hmac = "0.11.0"
@@ -24,6 +24,7 @@ serde = {version = "1.0.125", default-features = false, features = ["derive"]}
 serde_bytes = "0.11.5"
 bincode = "1.3.3"
 hashbrown = "0.11.2"
+zeroize = {version = "1.3.0", features = ["zeroize_derive"]}
 
 [dev-dependencies]
 criterion = "0.3.4"

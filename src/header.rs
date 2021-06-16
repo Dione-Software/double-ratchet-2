@@ -10,15 +10,17 @@ use aes_gcm_siv::aead::{NewAead, AeadInPlace};
 use crate::dh::gen_key_pair;
 use alloc::string::{ToString, String};
 use core::str::FromStr;
+use zeroize::Zeroize;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Header {
     pub public_key: PublicKey,
     pub pn: usize, // Previous Chain Length
     pub n: usize, // Message Number
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Zeroize)]
+#[zeroize(drop)]
 struct ExHeader {
     #[serde(with = "serde_bytes")]
     ad: Vec<u8>,
@@ -82,7 +84,7 @@ impl Header {
 impl From<Vec<u8>> for Header {
     fn from(d: Vec<u8>) -> Self {
         let ex_header: ExHeader = bincode::deserialize(&d).unwrap();
-        let public_key_string = String::from_utf8(ex_header.public_key).unwrap();
+        let public_key_string = String::from_utf8(ex_header.public_key.clone()).unwrap();
         Header {
             public_key: PublicKey::from_str(&public_key_string).unwrap(),
             pn: ex_header.pn,
@@ -94,7 +96,7 @@ impl From<Vec<u8>> for Header {
 impl From<&[u8]> for Header {
     fn from(d: &[u8]) -> Self {
         let ex_header: ExHeader = bincode::deserialize(d).unwrap();
-        let public_key_string = String::from_utf8(ex_header.public_key).unwrap();
+        let public_key_string = String::from_utf8(ex_header.public_key.clone()).unwrap();
         Header {
             public_key: PublicKey::from_str(&public_key_string).unwrap(),
             pn: ex_header.pn,

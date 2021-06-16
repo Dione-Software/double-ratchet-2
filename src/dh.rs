@@ -8,9 +8,24 @@ use alloc::vec::Vec;
 use alloc::string::ToString;
 use p256::elliptic_curve::ecdh::diffie_hellman;
 
+use zeroize::Zeroize;
+
 pub struct DhKeyPair {
     pub private_key: SecretKey,
     pub public_key: PublicKey,
+}
+
+impl Drop for DhKeyPair {
+    fn drop(&mut self) {
+        core::mem::drop(&mut self.private_key);
+        core::mem::drop(&mut self.public_key);
+    }
+}
+
+impl Zeroize for DhKeyPair {
+    fn zeroize(&mut self) {
+        core::mem::drop(self);
+    }
 }
 
 impl DhKeyPair {
@@ -49,7 +64,7 @@ impl Default for DhKeyPair {
 impl DhKeyPair {
     pub fn new() -> Self {
         let secret = SecretKey::random(&mut OsRng);
-        let public = PublicKey::from_secret_scalar(&secret.secret_scalar());
+        let public = PublicKey::from_secret_scalar(&secret.to_secret_scalar());
         DhKeyPair {
             private_key: secret,
             public_key: public,
@@ -57,7 +72,7 @@ impl DhKeyPair {
     }
 
     pub fn key_agreement(&self, public_key: &PublicKey) -> SharedSecret {
-        diffie_hellman(self.private_key.secret_scalar(), public_key.as_affine())
+        diffie_hellman(self.private_key.to_secret_scalar(), public_key.as_affine())
     }
 }
 
