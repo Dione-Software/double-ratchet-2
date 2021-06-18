@@ -17,14 +17,15 @@ pub struct DhKeyPair {
 
 impl Drop for DhKeyPair {
     fn drop(&mut self) {
-        core::mem::drop(&mut self.private_key);
-        core::mem::drop(&mut self.public_key);
+        self.private_key = SecretKey::random(&mut OsRng);
+        self.public_key = self.private_key.public_key();
     }
 }
 
 impl Zeroize for DhKeyPair {
     fn zeroize(&mut self) {
-        core::mem::drop(self);
+        self.private_key = SecretKey::random(&mut OsRng);
+        self.public_key = self.private_key.public_key();
     }
 }
 

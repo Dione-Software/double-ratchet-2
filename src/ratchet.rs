@@ -2,7 +2,7 @@
 //!
 
 use crate::dh::DhKeyPair;
-use p256::PublicKey;
+use p256::{PublicKey, SecretKey};
 use hashbrown::HashMap;
 use crate::kdf_root::{kdf_rk, kdf_rk_he};
 use crate::header::Header;
@@ -11,6 +11,7 @@ use crate::kdf_chain::kdf_ck;
 use crate::aead::{encrypt, decrypt};
 use alloc::string::ToString;
 use zeroize::Zeroize;
+use rand_core::OsRng;
 
 const MAX_SKIP: usize = 100;
 
@@ -31,12 +32,10 @@ pub struct Ratchet {
 
 impl Drop for Ratchet {
     fn drop(&mut self) {
-        core::mem::drop(&mut self.dhs);
-        match self.dhr {
-            Some(d) => {
-                core::mem::drop(d);
-            },
-            None => {}
+        self.dhs.zeroize();
+        if let Some(mut _d) = self.dhr {
+            let sk = SecretKey::random(&mut OsRng);
+            _d = sk.public_key()
         }
         self.rk.zeroize();
         self.ckr.zeroize();
@@ -181,7 +180,6 @@ pub struct RatchetEncHeader {
 impl Zeroize for RatchetEncHeader {
     fn zeroize(&mut self) {
         self.dhs.zeroize();
-        core::mem::drop(self.dhr);
         self.rk.zeroize();
         self.cks.zeroize();
         self.ckr.zeroize();
