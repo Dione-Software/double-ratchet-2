@@ -130,9 +130,10 @@ pub fn gen_header() -> Header {
     Header::new(&dh_pair, pn, n)
 }
 
+
 #[cfg(test)]
 mod tests {
-    use crate::header::{gen_header, Header};
+    use crate::header::{gen_header, Header, ExHeader};
     use crate::kdf_chain::gen_mk;
     use crate::aead::{encrypt, decrypt};
 
@@ -141,7 +142,7 @@ mod tests {
         let ad = b"";
         let header = gen_header();
         let serialized = header.concat(ad);
-        let created = Header::from(serialized);
+        let created = Header::from(serialized.as_slice());
         assert_eq!(header, created)
     }
 
@@ -154,5 +155,37 @@ mod tests {
         let (encrypted, nonce) = encrypt(&mk, data, &header_data);
         let decrypted = decrypt(&mk, &encrypted, &header_data, &nonce);
         assert_eq!(decrypted, data.to_vec())
+    }
+
+    #[test]
+    fn test_eq_header() {
+        let header1 = gen_header();
+        let header2 = gen_header();
+        assert_ne!(header1, header2)
+    }
+
+    #[test]
+    fn debug_header() {
+        let header = gen_header();
+        let _string = alloc::format!("{:?}", header);
+    }
+
+    #[test]
+    fn gen_ex_header() {
+        let ex_header = ExHeader {
+            ad: alloc::vec![0],
+            public_key: alloc::vec![1],
+            pn: 0,
+            n: 0
+        };
+        let _string = alloc::format!("{:?}", ex_header);
+    }
+
+    #[test]
+    fn dec_header() {
+        let header = gen_header();
+        let (encrypted, nonce) = header.encrypt(&[0; 32], &[0]);
+        let decrypted = Header::decrypt(&Some([1_u8; 32]), &encrypted, &nonce);
+        assert_eq!(None, decrypted)
     }
 }

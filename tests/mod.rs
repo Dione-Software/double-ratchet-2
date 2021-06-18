@@ -1,4 +1,5 @@
 use double_ratchet_2::ratchet::{Ratchet, RatchetEncHeader};
+extern crate alloc;
 
 #[test]
 fn ratchet_init() {
@@ -135,4 +136,40 @@ fn ratchet_ench_decrypt_four() {
     let decrypted2 = alice_ratchet.ratchet_decrypt(&header2, &encrypted2, &nonce2, b"");
     let comp_res = decrypted1 == data && decrypted2 == data;
     assert!(comp_res)
+}
+
+#[test]
+#[should_panic]
+fn ratchet_ench_enc_skip_panic() {
+    let sk = [1; 32];
+    let shared_hka = [2; 32];
+    let shared_nhkb = [3; 32];
+    let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+                                                                   shared_hka,
+                                                                   shared_nhkb);
+    let mut alice_ratchet = RatchetEncHeader::init_alice(sk,
+                                                         public_key,
+                                                         shared_hka,
+                                                         shared_nhkb);
+    let data = include_bytes!("../src/header.rs").to_vec();
+    let mut headers = alloc::vec![];
+    let mut encrypteds = alloc::vec![];
+    let mut nonces = alloc::vec![];
+    let mut decrypteds = alloc::vec![];
+    for _ in 0..200 {
+        let (header, encrypted, nonce) = alice_ratchet.ratchet_encrypt(&data, b"");
+        headers.push(header);
+        encrypteds.push(encrypted);
+        nonces.push(nonce);
+    }
+    headers.reverse();
+    encrypteds.reverse();
+    nonces.reverse();
+    for idx in 0..200 {
+        let header = headers.get(idx).unwrap();
+        let encrypted = encrypteds.get(idx).unwrap();
+        let nonce = nonces.get(idx).unwrap();
+        let decrypted = bob_ratchet.ratchet_decrypt(header, encrypted, nonce, b"");
+        decrypteds.push(decrypted);
+    }
 }

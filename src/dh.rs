@@ -10,6 +10,7 @@ use p256::elliptic_curve::ecdh::diffie_hellman;
 
 use zeroize::Zeroize;
 
+#[derive(Clone)]
 pub struct DhKeyPair {
     pub private_key: SecretKey,
     pub public_key: PublicKey,
@@ -65,7 +66,7 @@ impl Default for DhKeyPair {
 impl DhKeyPair {
     pub fn new() -> Self {
         let secret = SecretKey::random(&mut OsRng);
-        let public = PublicKey::from_secret_scalar(&secret.to_secret_scalar());
+        let public = secret.public_key();
         DhKeyPair {
             private_key: secret,
             public_key: public,
@@ -92,6 +93,7 @@ pub fn gen_key_pair() -> DhKeyPair {
 #[cfg(test)]
 mod tests {
     use crate::dh::DhKeyPair;
+    use alloc::string::ToString;
 
     #[test]
     fn key_generation() {
@@ -107,5 +109,34 @@ mod tests {
         let alice_shared_secret = alice_pair.key_agreement(&bob_pair.public_key);
         let bob_shared_secret = bob_pair.key_agreement(&alice_pair.public_key);
         assert_eq!(alice_shared_secret.as_bytes(), bob_shared_secret.as_bytes())
+    }
+
+    #[test]
+    fn ex_public_key() {
+        let key_pair = DhKeyPair::new();
+        let public_key_bytes = key_pair.ex_public_key_bytes();
+        let extracted_pk = key_pair.public_key.to_string().as_bytes().to_vec();
+        assert_eq!(extracted_pk, public_key_bytes)
+    }
+
+    #[test]
+    fn nq_key_pair() {
+        let key_pair1 = DhKeyPair::new();
+        let mut key_pair2 = DhKeyPair::new();
+        key_pair2.private_key = key_pair1.private_key.clone();
+        assert_ne!(key_pair1, key_pair2)
+    }
+
+    #[test]
+    fn eq_key_pair() {
+        let key_pair1 = DhKeyPair::new();
+        let key_pair2 = key_pair1.clone();
+        assert_eq!(key_pair1, key_pair2)
+    }
+
+    #[test]
+    fn test_format() {
+        let key_pair = DhKeyPair::default();
+        let _str = alloc::format!("{:?}", key_pair);
     }
 }
