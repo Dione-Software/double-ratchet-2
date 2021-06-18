@@ -1,8 +1,10 @@
-# double-ratchet-2
-
 [![Crate](https://img.shields.io/crates/v/double-ratchet-2)](https://crates.io/crates/double-ratchet-2)
 [![License](https://img.shields.io/github/license/Dione-Software/double-ratchet-2)](https://github.com/Dione-Software/double-ratchet-2/blob/main/LICENSE)
-[![Actions](https://img.shields.io/github/workflow/status/Dione-Software/double-ratchet-2/Rust)](https://github.com/Dione-Software/double-ratchet-2/actions)
+[![Coverage Status](https://coveralls.io/repos/github/Dione-Software/double-ratchet-2/badge.svg?branch=main)](https://coveralls.io/github/Dione-Software/double-ratchet-2?branch=main)
+[![Workflow Status](https://github.com/Dione-Software/double-ratchet-2/actions/workflows/rust.yml/badge.svg)](https://github.com/Dione-Software/double-ratchet-2/actions/workflows/rust.yml)
+![Maintenance](https://img.shields.io/badge/maintenance-activly--developed-brightgreen.svg)
+
+# double-ratchet-2
 
 Implementation of the double ratchet system/encryption as specified by [Signal][1].
 
@@ -117,5 +119,7 @@ TODO:
 [1]: https://signal.org/docs/specifications/doubleratchet/
 [2]: https://signal.org/docs/specifications/doubleratchet/#recommended-cryptographic-algorithms
 [3]: https://signal.org/docs/specifications/doubleratchet/#double-ratchet-with-header-encryption
+
+Current version: 0.3.1
 
 License: MIT
