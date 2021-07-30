@@ -257,7 +257,7 @@ impl RatchetEncHeader {
     }
 
     fn try_skipped_message_keys(&mut self, enc_header: &(Vec<u8>, [u8; 12]),
-                                ciphertext: &[u8], nonce: &[u8; 12], ad: &[u8]) -> Option<Vec<u8>> {
+                                ciphertext: &[u8], nonce: &[u8; 12], ad: &[u8]) -> (Option<Vec<u8>>, Option<Header>) {
 
         let ret_data = self.mkskipped.clone().into_iter().find(|e| {
             let header = Header::decrypt(&e.0.0, &enc_header.0, &enc_header.1);
@@ -267,12 +267,12 @@ impl RatchetEncHeader {
             }
         });
         match ret_data {
-            None => { None },
+            None => { (None, None) },
             Some(data) => {
                 let header = Header::decrypt(&data.0.0, &enc_header.0, &enc_header.1);
                 let mk = data.1;
                 self.mkskipped.remove(&(data.0.0, data.0.1));
-                Some(decrypt(&mk, ciphertext, &header.unwrap().concat(ad), nonce))
+                (Some(decrypt(&mk, ciphertext, &header.clone().unwrap().concat(ad), nonce)), header)
             }
         }
     }
@@ -323,7 +323,7 @@ impl RatchetEncHeader {
     }
 
     pub fn ratchet_decrypt(&mut self, enc_header: &(Vec<u8>, [u8; 12]), ciphertext: &[u8], nonce: &[u8; 12], ad: &[u8]) -> Vec<u8> {
-        let plaintext = self.try_skipped_message_keys(enc_header, ciphertext, nonce, ad);
+        let (plaintext, _) = self.try_skipped_message_keys(enc_header, ciphertext, nonce, ad);
         if let Some(d) = plaintext { return d };
         let (header, dh_ratchet) = self.decrypt_header(enc_header).unwrap();
         if dh_ratchet {
@@ -335,5 +335,20 @@ impl RatchetEncHeader {
         self.ckr = Some(ckr);
         self.nr += 1;
         decrypt(&mk, ciphertext, &header.concat(ad), nonce)
+    }
+
+    pub fn ratchet_decrypt_w_header(&mut self, enc_header: &(Vec<u8>, [u8; 12]), ciphertext: &[u8], nonce: &[u8; 12], ad: &[u8]) -> (Vec<u8>, Header) {
+        let (plaintext, header) = self.try_skipped_message_keys(enc_header, ciphertext, nonce, ad);
+        if let Some(d) = plaintext { return (d, header.unwrap()) };
+        let (header, dh_ratchet) = self.decrypt_header(enc_header).unwrap();
+        if dh_ratchet {
+            self.skip_message_keys(header.pn).unwrap();
+            self.dhratchet(&header);
+        }
+        self.skip_message_keys(header.n).unwrap();
+        let (ckr, mk) = kdf_ck(&self.ckr.unwrap());
+        self.ckr = Some(ckr);
+        self.nr += 1;
+        (decrypt(&mk, ciphertext, &header.concat(ad), nonce), header)
     }
 }
