@@ -173,3 +173,22 @@ fn ratchet_ench_enc_skip_panic() {
         decrypteds.push(decrypted);
     }
 }
+
+#[test]
+fn import_export() {
+    let sk = [1; 32];
+    let shared_hka = [2; 32];
+    let shared_nhkb = [3; 32];
+    let (bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+                                                                   shared_hka,
+                                                                   shared_nhkb);
+    let alice_ratchet = RatchetEncHeader::init_alice(sk, public_key, shared_hka, shared_nhkb);
+
+    let ex_bob_ratchet = bob_ratchet.export();
+    let in_bob_ratchet = RatchetEncHeader::import(&ex_bob_ratchet);
+    assert_eq!(in_bob_ratchet, bob_ratchet);
+
+    let ex_alice_ratchet = alice_ratchet.export();
+    let in_alice_ratchet = RatchetEncHeader::import(&ex_alice_ratchet);
+    assert_eq!(in_alice_ratchet, alice_ratchet);
+}

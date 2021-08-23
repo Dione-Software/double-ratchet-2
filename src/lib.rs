@@ -107,6 +107,20 @@
 //! assert_eq!(data, decrypted)
 //! ```
 //!
+//! # Export / Import Ratchet with encrypted headers
+//! This ratchet implements import and export functionality. This works over a bincode backend and
+//! maybe useful for saving Ratchets to and loading from a file.
+//! ```
+//! # use double_ratchet_2::ratchet::RatchetEncHeader;
+//! # let sk = [0; 32];
+//! # let shared_hka = [1; 32];
+//! # let shared_nhkb = [2; 32];
+//! let (bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk, shared_hka, shared_nhkb);
+//! let ex_ratchet = bob_ratchet.export();
+//! let im_ratchet = RatchetEncHeader::import(&ex_ratchet);
+//! assert_eq!(im_ratchet, bob_ratchet)
+//! ```
+//!
 //! # Features
 //!
 //! Currently the crate only supports one feature: ring. If feature is enabled the crate switches

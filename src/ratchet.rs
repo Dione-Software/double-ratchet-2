@@ -9,9 +9,10 @@ use crate::header::Header;
 use alloc::vec::Vec;
 use crate::kdf_chain::kdf_ck;
 use crate::aead::{encrypt, decrypt};
-use alloc::string::ToString;
+use alloc::string::{ToString, String};
 use zeroize::Zeroize;
 use rand_core::OsRng;
+use serde::{Deserialize, Serialize};
 
 const MAX_SKIP: usize = 100;
 
@@ -161,6 +162,7 @@ impl Ratchet {
     }
 }
 
+#[derive(PartialEq, Debug)]
 pub struct RatchetEncHeader {
     dhs: DhKeyPair,
     dhr: Option<PublicKey>,
@@ -198,6 +200,85 @@ impl Zeroize for RatchetEncHeader {
 impl Drop for RatchetEncHeader {
     fn drop(&mut self) {
         self.zeroize();
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct ExRatchetEncHeader {
+    dhs: (String, String),
+    dhr: Option<String>,
+    rk: [u8; 32],
+    cks: Option<[u8; 32]>,
+    ckr: Option<[u8; 32]>,
+    ns: usize,
+    nr: usize,
+    pn: usize,
+    hks: Option<[u8; 32]>,
+    hkr: Option<[u8; 32]>,
+    nhks: Option<[u8; 32]>,
+    nhkr: Option<[u8; 32]>,
+    mkskipped: HashMap<(Option<[u8; 32]>, usize), [u8; 32]>
+}
+
+impl From<&RatchetEncHeader> for ExRatchetEncHeader {
+    fn from(reh: &RatchetEncHeader) -> Self {
+        let private_dhs = reh.dhs.private_key.to_jwk_string();
+        let public_dhs = reh.dhs.public_key.to_jwk_string();
+        let dhs = (private_dhs, public_dhs);
+        let dhr = reh.dhr.map(|e| e.to_jwk_string());
+        let rk = reh.rk;
+        let cks = reh.cks;
+        let ckr = reh.ckr;
+        let ns = reh.ns;
+        let nr = reh.nr;
+        let pn = reh.pn;
+        let hks = reh.hks;
+        let hkr = reh.hkr;
+        let nhks = reh.nhks;
+        let nhkr = reh.nhkr;
+        let mkskipped = reh.mkskipped.clone();
+        Self {
+            dhs,
+            dhr,
+            rk,
+            cks,
+            ckr,
+            ns,
+            nr,
+            pn,
+            hks,
+            hkr,
+            nhks,
+            nhkr,
+            mkskipped
+        }
+    }
+}
+
+impl From<&ExRatchetEncHeader> for RatchetEncHeader {
+    fn from(ex_reh: &ExRatchetEncHeader) -> Self {
+        let private_dhs = SecretKey::from_jwk_str(&ex_reh.dhs.0).unwrap();
+        let public_dhs = PublicKey::from_jwk_str(&ex_reh.dhs.1).unwrap();
+        let dhs = DhKeyPair {
+            private_key: private_dhs,
+            public_key: public_dhs
+        };
+        let dhr = ex_reh.dhr.as_ref().map(|e| PublicKey::from_jwk_str(&e).unwrap());
+        Self {
+            dhs,
+            dhr,
+            rk: ex_reh.rk,
+            cks: ex_reh.cks,
+            ckr: ex_reh.ckr,
+            ns: ex_reh.ns,
+            nr: ex_reh.nr,
+            pn: ex_reh.pn,
+            hks: ex_reh.hks,
+            hkr: ex_reh.hkr,
+            nhks: ex_reh.nhks,
+            nhkr: ex_reh.nhkr,
+            mkskipped: ex_reh.mkskipped.clone()
+        }
     }
 }
 
@@ -350,5 +431,17 @@ impl RatchetEncHeader {
         self.ckr = Some(ckr);
         self.nr += 1;
         (decrypt(&mk, ciphertext, &header.concat(ad), nonce), header)
+    }
+
+    /// Export the ratchet to Binary data
+    pub fn export(&self) -> Vec<u8> {
+        let ex: ExRatchetEncHeader = self.into();
+        bincode::serialize(&ex).unwrap()
+    }
+
+    /// Import the ratchet from Binary data. Panics when binary data is invalid.
+    pub fn import(inp: &[u8]) -> Self {
+        let ex: ExRatchetEncHeader = bincode::deserialize(inp).unwrap();
+        RatchetEncHeader::from(&ex)
     }
 }

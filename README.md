@@ -106,6 +106,16 @@ let decrypted = bob_ratchet.ratchet_decrypt(&header, &encrypted, &nonce, ad);
 assert_eq!(data, decrypted)
 ```
 
+## Export / Import Ratchet with encrypted headers
+This ratchet implements import and export functionality. This works over a bincode backend and
+maybe useful for saving Ratchets to and loading from a file.
+```rust
+let (bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk, shared_hka, shared_nhkb);
+let ex_ratchet = bob_ratchet.export();
+let im_ratchet = RatchetEncHeader::import(&ex_ratchet);
+assert_eq!(im_ratchet, bob_ratchet)
+```
+
 ## Features
 
 Currently the crate only supports one feature: ring. If feature is enabled the crate switches
@@ -120,6 +130,6 @@ TODO:
 [2]: https://signal.org/docs/specifications/doubleratchet/#recommended-cryptographic-algorithms
 [3]: https://signal.org/docs/specifications/doubleratchet/#double-ratchet-with-header-encryption
 
-Current version: 0.3.1
+Current version: 0.3.4
 
 License: MIT
