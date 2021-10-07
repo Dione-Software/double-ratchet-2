@@ -18,7 +18,8 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 p256 = {version = "0.9", features = ["zeroize", "ecdh", "arithmetic", "pem", "jwk"]}
-rand_core = {version = "0.6", features = ["getrandom"]}
+rand_core = {version = "0.6"}
+getrandom = {version = "0.2.3"}
 hkdf = "0.11.0"
 hmac = "0.11.0"
 aes-gcm-siv = {version = "0.10.0"}
@@ -44,3 +45,4 @@ opt-level = 3
 [features]
 default = ["sha2"]
 ring = ["ring-compat/digest"]
+wasm = ["getrandom/js"]

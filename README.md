@@ -118,9 +118,12 @@ assert_eq!(im_ratchet, bob_ratchet)
 
 ## Features
 
-Currently the crate only supports one feature: ring. If feature is enabled the crate switches
+The crate supports a feature for better performance: ring. If feature is enabled the crate switches
 to ring-compat and uses ring as backend for Sha512 Hashing. May result in slightly better performance.
 
+### WASM
+
+For WASM support enable the feature `wasm`.
 
 TODO:
 - [x] Standard Double Ratchet
