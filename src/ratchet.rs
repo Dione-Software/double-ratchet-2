@@ -263,7 +263,7 @@ impl From<&ExRatchetEncHeader> for RatchetEncHeader {
             private_key: private_dhs,
             public_key: public_dhs
         };
-        let dhr = ex_reh.dhr.as_ref().map(|e| PublicKey::from_jwk_str(&e).unwrap());
+        let dhr = ex_reh.dhr.as_ref().map(|e| PublicKey::from_jwk_str(e).unwrap());
         Self {
             dhs,
             dhr,
