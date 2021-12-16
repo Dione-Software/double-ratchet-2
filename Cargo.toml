@@ -20,7 +20,7 @@ maintenance = { status = "actively-developed" }
 p256 = {version = "0.9", features = ["zeroize", "ecdh", "arithmetic", "pem", "jwk"]}
 rand_core = {version = "0.6"}
 getrandom = {version = "0.2.3"}
-hkdf = "0.11.0"
+hkdf = "0.12.0"
 hmac = "0.11.0"
 aes-gcm-siv = {version = "0.10.3"}
 ring-compat = {version = "0.4.0", optional = true, features = ["digest"]}
