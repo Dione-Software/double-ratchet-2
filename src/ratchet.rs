@@ -375,7 +375,7 @@ impl RatchetEncHeader {
         }
         if let Some(d) = &mut self.ckr {
             while self.nr < until {
-                let (ckr, mk) = kdf_ck(&d);
+                let (ckr, mk) = kdf_ck(d);
                 *d = ckr;
                 self.mkskipped.insert((self.hkr, self.nr), mk);
                 self.nr += 1
