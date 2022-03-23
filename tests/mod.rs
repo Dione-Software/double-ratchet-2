@@ -27,9 +27,11 @@ fn ratchet_enc_skip() {
     let data = include_bytes!("../src/header.rs").to_vec();
     let (header1, encrypted1, nonce1) = alice_ratchet.ratchet_encrypt(&data, b"");
     let (header2, encrypted2, nonce2) = alice_ratchet.ratchet_encrypt(&data, b"");
+    let (header3, encrypted3, nonce3) = alice_ratchet.ratchet_encrypt(&data, b"");
+    let decrypted3 = bob_ratchet.ratchet_decrypt(&header3, &encrypted3, &nonce3, b"");
     let decrypted2 = bob_ratchet.ratchet_decrypt(&header2, &encrypted2, &nonce2, b"");
     let decrypted1 = bob_ratchet.ratchet_decrypt(&header1, &encrypted1, &nonce1, b"");
-    let comp_res = decrypted1 == data && decrypted2 == data;
+    let comp_res = decrypted1 == data && decrypted2 == data && decrypted3 == data;
     assert!(comp_res)
 }
 
@@ -101,9 +103,11 @@ fn ratchet_ench_enc_skip() {
     let data = include_bytes!("../src/header.rs").to_vec();
     let (header1, encrypted1, nonce1) = alice_ratchet.ratchet_encrypt(&data, b"");
     let (header2, encrypted2, nonce2) = alice_ratchet.ratchet_encrypt(&data, b"");
+    let (header3, encrypted3, nonce3) = alice_ratchet.ratchet_encrypt(&data, b"");
+    let decrypted3 = bob_ratchet.ratchet_decrypt(&header3, &encrypted3, &nonce3, b"");
     let decrypted2 = bob_ratchet.ratchet_decrypt(&header2, &encrypted2, &nonce2, b"");
     let decrypted1 = bob_ratchet.ratchet_decrypt(&header1, &encrypted1, &nonce1, b"");
-    let comp_res = decrypted1 == data && decrypted2 == data;
+    let comp_res = decrypted1 == data && decrypted2 == data && decrypted3 == data;
     assert!(comp_res)
 }
 
