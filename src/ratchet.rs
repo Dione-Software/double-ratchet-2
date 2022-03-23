@@ -111,10 +111,11 @@ impl Ratchet {
             return Err("Skipped to many keys");
         }
         match self.ckr {
-            Some(d) => {
+            Some(mut d) => {
                 while self.nr < until {
                     let (ckr, mk) = kdf_ck(&d);
                     self.ckr = Some(ckr);
+                    d = ckr;
                     self.mkskipped.insert((self.dhr.unwrap().to_string().as_bytes().to_vec(), self.nr), mk);
                     self.nr += 1
                 }
@@ -372,10 +373,10 @@ impl RatchetEncHeader {
         if self.nr + MAX_SKIP < until {
             return Err("Skipping went wrong")
         }
-        if let Some(d) = self.ckr {
+        if let Some(d) = &mut self.ckr {
             while self.nr < until {
-                let (ckr, mk) = kdf_ck(&d);
-                self.ckr = Some(ckr);
+                let (ckr, mk) = kdf_ck(d);
+                *d = ckr;
                 self.mkskipped.insert((self.hkr, self.nr), mk);
                 self.nr += 1
             }
