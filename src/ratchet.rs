@@ -373,11 +373,10 @@ impl RatchetEncHeader {
         if self.nr + MAX_SKIP < until {
             return Err("Skipping went wrong")
         }
-        if let Some(mut d) = self.ckr {
+        if let Some(d) = &mut self.ckr {
             while self.nr < until {
                 let (ckr, mk) = kdf_ck(&d);
-                self.ckr = Some(ckr);
-                d = ckr;
+                *d = ckr;
                 self.mkskipped.insert((self.hkr, self.nr), mk);
                 self.nr += 1
             }
