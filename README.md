@@ -8,6 +8,8 @@
 
 Implementation of the double ratchet system/encryption as specified by [Signal][1].
 
+**WARNING! This implementation uses P-256 NOT Curve25519 as specified by Signal!**
+
 The implementation follows the cryptographic recommendations provided by [Signal][2].
 The AEAD Algorithm uses a constant Nonce. This might be changed in the future.
 
@@ -118,12 +120,9 @@ assert_eq!(im_ratchet, bob_ratchet)
 
 ## Features
 
-The crate supports a feature for better performance: ring. If feature is enabled the crate switches
+Currently the crate only supports one feature: ring. If feature is enabled the crate switches
 to ring-compat and uses ring as backend for Sha512 Hashing. May result in slightly better performance.
 
-### WASM
-
-For WASM support enable the feature `wasm`.
 
 TODO:
 - [x] Standard Double Ratchet
@@ -133,6 +132,6 @@ TODO:
 [2]: https://signal.org/docs/specifications/doubleratchet/#recommended-cryptographic-algorithms
 [3]: https://signal.org/docs/specifications/doubleratchet/#double-ratchet-with-header-encryption
 
-Current version: 0.3.4
+Current version: 0.4.0
 
 License: MIT
