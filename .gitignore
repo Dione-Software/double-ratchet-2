@@ -1,5 +1,2 @@
 /target
-Cargo.lock
-/.idea/.gitignore
-/.idea/double-ratchet-2.iml
-/.idea/vcs.xml
+/.idea
