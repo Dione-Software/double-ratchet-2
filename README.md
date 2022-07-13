@@ -8,8 +8,6 @@
 
 Implementation of the double ratchet system/encryption as specified by [Signal][1].
 
-**WARNING! This implementation uses P-256 NOT Curve25519 as specified by Signal!**
-
 The implementation follows the cryptographic recommendations provided by [Signal][2].
 The AEAD Algorithm uses a constant Nonce. This might be changed in the future.
 
@@ -138,6 +136,6 @@ TODO:
 [2]: https://signal.org/docs/specifications/doubleratchet/#recommended-cryptographic-algorithms
 [3]: https://signal.org/docs/specifications/doubleratchet/#double-ratchet-with-header-encryption
 
-Current version: 0.3.7
+Current version: 0.4.0-pre.1
 
 License: MIT
