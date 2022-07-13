@@ -1,7 +1,7 @@
-use rand_core::OsRng;
 use core::fmt::{Debug, Formatter};
 use core::fmt;
 use alloc::vec::Vec;
+use rand_core::OsRng;
 use serde::{Serialize, Deserialize};
 use crate::curve::{PrivateKey, PublicKey as PublicKeyT};
 

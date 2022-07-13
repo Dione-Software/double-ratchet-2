@@ -1,7 +1,7 @@
 use aes_gcm_siv::{Aes256GcmSiv, Nonce, KeyInit};
 use aes_gcm_siv::aead::AeadInPlace;
 use alloc::vec::Vec;
-use rand_core::{OsRng, RngCore};
+use rand_core::{RngCore, OsRng};
 
 pub fn encrypt(mk: &[u8; 32], plaintext: &[u8], associated_data: &[u8]) -> (Vec<u8>, [u8; 12]) {
     let cipher = Aes256GcmSiv::new_from_slice(mk).unwrap();

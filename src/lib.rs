@@ -147,8 +147,6 @@
 
 extern crate alloc;
 
-pub use p256::PublicKey;
-
 mod aead;
 mod dh;
 mod kdf_root;
