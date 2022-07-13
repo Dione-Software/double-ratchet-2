@@ -8,27 +8,12 @@ use alloc::vec::Vec;
 use alloc::string::ToString;
 use p256::elliptic_curve::ecdh::diffie_hellman;
 
-use zeroize::Zeroize;
-
 #[derive(Clone)]
 pub struct DhKeyPair {
     pub private_key: SecretKey,
     pub public_key: PublicKey,
 }
 
-impl Drop for DhKeyPair {
-    fn drop(&mut self) {
-        self.private_key = SecretKey::random(&mut OsRng);
-        self.public_key = self.private_key.public_key();
-    }
-}
-
-impl Zeroize for DhKeyPair {
-    fn zeroize(&mut self) {
-        self.private_key = SecretKey::random(&mut OsRng);
-        self.public_key = self.private_key.public_key();
-    }
-}
 
 impl DhKeyPair {
     fn ex_public_key_bytes(&self) -> Vec<u8> {
@@ -38,7 +23,7 @@ impl DhKeyPair {
 
 impl PartialEq for DhKeyPair {
     fn eq(&self, other: &Self) -> bool {
-        if self.private_key.to_bytes() != other.private_key.to_bytes() {
+        if self.private_key.to_be_bytes() != other.private_key.to_be_bytes() {
             return false
         }
         if self.ex_public_key_bytes() != other.ex_public_key_bytes() {
@@ -51,7 +36,7 @@ impl PartialEq for DhKeyPair {
 impl Debug for DhKeyPair {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.debug_struct("DhKeyPair")
-            .field("private_key", &self.private_key.to_bytes())
+            .field("private_key", &self.private_key.to_be_bytes())
             .field("public_key", &self.ex_public_key_bytes())
             .finish()
     }
@@ -74,7 +59,7 @@ impl DhKeyPair {
     }
 
     pub fn key_agreement(&self, public_key: &PublicKey) -> SharedSecret {
-        diffie_hellman(self.private_key.to_secret_scalar(), public_key.as_affine())
+        diffie_hellman(self.private_key.to_nonzero_scalar(), public_key.as_affine())
     }
 }
 

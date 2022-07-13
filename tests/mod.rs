@@ -189,10 +189,10 @@ fn import_export() {
     let alice_ratchet = RatchetEncHeader::init_alice(sk, public_key, shared_hka, shared_nhkb);
 
     let ex_bob_ratchet = bob_ratchet.export();
-    let in_bob_ratchet = RatchetEncHeader::import(&ex_bob_ratchet);
+    let in_bob_ratchet = RatchetEncHeader::import(&ex_bob_ratchet).unwrap();
     assert_eq!(in_bob_ratchet, bob_ratchet);
 
     let ex_alice_ratchet = alice_ratchet.export();
-    let in_alice_ratchet = RatchetEncHeader::import(&ex_alice_ratchet);
+    let in_alice_ratchet = RatchetEncHeader::import(&ex_alice_ratchet).unwrap();
     assert_eq!(in_alice_ratchet, alice_ratchet);
 }

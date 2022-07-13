@@ -119,7 +119,7 @@
 //! # let shared_nhkb = [2; 32];
 //! let (bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk, shared_hka, shared_nhkb);
 //! let ex_ratchet = bob_ratchet.export();
-//! let im_ratchet = RatchetEncHeader::import(&ex_ratchet);
+//! let im_ratchet = RatchetEncHeader::import(&ex_ratchet).unwrap();
 //! assert_eq!(im_ratchet, bob_ratchet)
 //! ```
 //!

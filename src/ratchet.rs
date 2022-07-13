@@ -33,7 +33,6 @@ pub struct Ratchet {
 
 impl Drop for Ratchet {
     fn drop(&mut self) {
-        self.dhs.zeroize();
         if let Some(mut _d) = self.dhr {
             let sk = SecretKey::random(&mut OsRng);
             _d = sk.public_key()
@@ -182,7 +181,6 @@ pub struct RatchetEncHeader {
 
 impl Zeroize for RatchetEncHeader {
     fn zeroize(&mut self) {
-        self.dhs.zeroize();
         self.rk.zeroize();
         self.cks.zeroize();
         self.ckr.zeroize();
@@ -225,7 +223,7 @@ impl From<&RatchetEncHeader> for ExRatchetEncHeader {
     fn from(reh: &RatchetEncHeader) -> Self {
         let private_dhs = reh.dhs.private_key.to_jwk_string();
         let public_dhs = reh.dhs.public_key.to_jwk_string();
-        let dhs = (private_dhs, public_dhs);
+        let dhs = (private_dhs.to_string(), public_dhs);
         let dhr = reh.dhr.map(|e| e.to_jwk_string());
         let rk = reh.rk;
         let cks = reh.cks;
@@ -441,8 +439,8 @@ impl RatchetEncHeader {
     }
 
     /// Import the ratchet from Binary data. Panics when binary data is invalid.
-    pub fn import(inp: &[u8]) -> Self {
-        let ex: ExRatchetEncHeader = bincode::deserialize(inp).unwrap();
-        RatchetEncHeader::from(&ex)
+    pub fn import(inp: &[u8]) -> Option<Self> {
+        let ex: ExRatchetEncHeader = bincode::deserialize(inp).ok()?;
+        Some(RatchetEncHeader::from(&ex))
     }
 }
