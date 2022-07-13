@@ -1,11 +1,10 @@
-use aes_gcm_siv::{Key, Aes256GcmSiv, Nonce};
-use aes_gcm_siv::aead::{NewAead, AeadInPlace};
+use aes_gcm_siv::{Aes256GcmSiv, Nonce, KeyInit};
+use aes_gcm_siv::aead::AeadInPlace;
 use alloc::vec::Vec;
 use rand_core::{OsRng, RngCore};
 
 pub fn encrypt(mk: &[u8; 32], plaintext: &[u8], associated_data: &[u8]) -> (Vec<u8>, [u8; 12]) {
-    let key = Key::from_slice(mk);
-    let cipher = Aes256GcmSiv::new(key);
+    let cipher = Aes256GcmSiv::new_from_slice(mk).unwrap();
     let mut nonce_data = [0_u8; 12];
     OsRng::fill_bytes(&mut OsRng, &mut nonce_data);
     let nonce = Nonce::from_slice(&nonce_data);
@@ -18,8 +17,7 @@ pub fn encrypt(mk: &[u8; 32], plaintext: &[u8], associated_data: &[u8]) -> (Vec<
 }
 
 pub fn decrypt(mk: &[u8; 32], ciphertext: &[u8], associated_data: &[u8], nonce: &[u8; 12]) -> Vec<u8> {
-    let key = Key::from_slice(mk);
-    let cipher = Aes256GcmSiv::new(key);
+    let cipher = Aes256GcmSiv::new_from_slice(mk).unwrap();
 
     let nonce = Nonce::from_slice(nonce);
     let mut buffer = Vec::new();

@@ -4,15 +4,15 @@ extern crate alloc;
 #[test]
 fn ratchet_init() {
     let sk = [1; 32];
-    let (_bob_ratchet, public_key) = Ratchet::init_bob(sk);
-    let _alice_ratchet = Ratchet::init_alice(sk, public_key);
+    let (_bob_ratchet, public_key) = Ratchet::<x25519_dalek::StaticSecret>::init_bob(sk);
+    let _alice_ratchet = Ratchet::<x25519_dalek::StaticSecret>::init_alice(sk, public_key);
 }
 
 #[test]
 fn ratchet_enc_single() {
     let sk = [1; 32];
-    let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);
-    let mut alice_ratchet = Ratchet::init_alice(sk, public_key);
+    let (mut bob_ratchet, public_key) = Ratchet::<x25519_dalek::StaticSecret>::init_bob(sk);
+    let mut alice_ratchet = Ratchet::<x25519_dalek::StaticSecret>::init_alice(sk, public_key);
     let data = include_bytes!("../src/header.rs").to_vec();
     let (header, encrypted, nonce) = alice_ratchet.ratchet_encrypt(&data, b"");
     let decrypted = bob_ratchet.ratchet_decrypt(&header, &encrypted, &nonce, b"");
@@ -22,8 +22,8 @@ fn ratchet_enc_single() {
 #[test]
 fn ratchet_enc_skip() {
     let sk = [1; 32];
-    let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);
-    let mut alice_ratchet = Ratchet::init_alice(sk, public_key);
+    let (mut bob_ratchet, public_key) = Ratchet::<x25519_dalek::StaticSecret>::init_bob(sk);
+    let mut alice_ratchet = Ratchet::<x25519_dalek::StaticSecret>::init_alice(sk, public_key);
     let data = include_bytes!("../src/header.rs").to_vec();
     let (header1, encrypted1, nonce1) = alice_ratchet.ratchet_encrypt(&data, b"");
     let (header2, encrypted2, nonce2) = alice_ratchet.ratchet_encrypt(&data, b"");
@@ -39,7 +39,7 @@ fn ratchet_enc_skip() {
 #[should_panic]
 fn ratchet_panic_bob() {
     let sk = [1; 32];
-    let (mut bob_ratchet, _) = Ratchet::init_bob(sk);
+    let (mut bob_ratchet, _) = Ratchet::<x25519_dalek::StaticSecret>::init_bob(sk);
     let data = include_bytes!("../src/header.rs").to_vec();
     let (_, _, _) = bob_ratchet.ratchet_encrypt(&data, b"");
 }
@@ -48,8 +48,8 @@ fn ratchet_panic_bob() {
 fn ratchet_encryt_decrypt_four() {
     let sk = [1; 32];
     let data = include_bytes!("../src/dh.rs").to_vec();
-    let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);
-    let mut alice_ratchet = Ratchet::init_alice(sk, public_key);
+    let (mut bob_ratchet, public_key) = Ratchet::<x25519_dalek::StaticSecret>::init_bob(sk);
+    let mut alice_ratchet = Ratchet::<x25519_dalek::StaticSecret>::init_alice(sk, public_key);
     let (header1, encrypted1, nonce1) = alice_ratchet.ratchet_encrypt(&data, b"");
     let decrypted1 = bob_ratchet.ratchet_decrypt(&header1, &encrypted1, &nonce1, b"");
     let (header2, encrypted2, nonce2) = bob_ratchet.ratchet_encrypt(&data, b"");
@@ -63,10 +63,10 @@ fn ratchet_ench_init() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
     let shared_nhkb = [3; 32];
-    let (_bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+    let (_bob_ratchet, public_key) = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_bob(sk,
                                                                    shared_hka,
                                                                    shared_nhkb);
-    let _alice_ratchet = RatchetEncHeader::init_alice(sk, public_key,
+    let _alice_ratchet = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_alice(sk, public_key,
                                                       shared_hka, shared_nhkb);
 }
 
@@ -75,10 +75,10 @@ fn ratchet_ench_enc_single() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
     let shared_nhkb = [3; 32];
-    let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+    let (mut bob_ratchet, public_key) = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_bob(sk,
                                                                    shared_hka,
                                                                    shared_nhkb);
-    let mut alice_ratchet = RatchetEncHeader::init_alice(sk,
+    let mut alice_ratchet = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_alice(sk,
                                                          public_key,
                                                          shared_hka,
                                                          shared_nhkb);
@@ -93,10 +93,10 @@ fn ratchet_ench_enc_skip() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
     let shared_nhkb = [3; 32];
-    let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+    let (mut bob_ratchet, public_key) = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_bob(sk,
                                                                    shared_hka,
                                                                    shared_nhkb);
-    let mut alice_ratchet = RatchetEncHeader::init_alice(sk,
+    let mut alice_ratchet = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_alice(sk,
                                                          public_key,
                                                          shared_hka,
                                                          shared_nhkb);
@@ -117,7 +117,7 @@ fn ratchet_ench_panic_bob() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
     let shared_nhkb = [3; 32];
-    let (mut bob_ratchet, _) = RatchetEncHeader::init_bob(sk,
+    let (mut bob_ratchet, _) = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_bob(sk,
                                                                    shared_hka,
                                                                    shared_nhkb);
     let data = include_bytes!("../src/header.rs").to_vec();
@@ -129,10 +129,10 @@ fn ratchet_ench_decrypt_four() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
     let shared_nhkb = [3; 32];
-    let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+    let (mut bob_ratchet, public_key) = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_bob(sk,
                                                                    shared_hka,
                                                                    shared_nhkb);
-    let mut alice_ratchet = RatchetEncHeader::init_alice(sk, public_key, shared_hka, shared_nhkb);
+    let mut alice_ratchet = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_alice(sk, public_key, shared_hka, shared_nhkb);
     let data = include_bytes!("../src/dh.rs").to_vec();
     let (header1, encrypted1, nonce1) = alice_ratchet.ratchet_encrypt(&data, b"");
     let decrypted1 = bob_ratchet.ratchet_decrypt(&header1, &encrypted1, &nonce1, b"");
@@ -148,10 +148,10 @@ fn ratchet_ench_enc_skip_panic() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
     let shared_nhkb = [3; 32];
-    let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+    let (mut bob_ratchet, public_key) = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_bob(sk,
                                                                    shared_hka,
                                                                    shared_nhkb);
-    let mut alice_ratchet = RatchetEncHeader::init_alice(sk,
+    let mut alice_ratchet = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_alice(sk,
                                                          public_key,
                                                          shared_hka,
                                                          shared_nhkb);
@@ -183,16 +183,16 @@ fn import_export() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
     let shared_nhkb = [3; 32];
-    let (bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+    let (bob_ratchet, public_key) = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_bob(sk,
                                                                    shared_hka,
                                                                    shared_nhkb);
-    let alice_ratchet = RatchetEncHeader::init_alice(sk, public_key, shared_hka, shared_nhkb);
+    let alice_ratchet = RatchetEncHeader::<x25519_dalek::StaticSecret>::init_alice(sk, public_key, shared_hka, shared_nhkb);
 
     let ex_bob_ratchet = bob_ratchet.export();
-    let in_bob_ratchet = RatchetEncHeader::import(&ex_bob_ratchet).unwrap();
-    assert_eq!(in_bob_ratchet, bob_ratchet);
+    let in_bob_ratchet = RatchetEncHeader::<x25519_dalek::StaticSecret>::import(&ex_bob_ratchet).unwrap();
+    assert_eq!(in_bob_ratchet.export(), bob_ratchet.export());
 
     let ex_alice_ratchet = alice_ratchet.export();
-    let in_alice_ratchet = RatchetEncHeader::import(&ex_alice_ratchet).unwrap();
-    assert_eq!(in_alice_ratchet, alice_ratchet);
+    let in_alice_ratchet = RatchetEncHeader::<x25519_dalek::StaticSecret>::import(&ex_alice_ratchet).unwrap();
+    assert_eq!(in_alice_ratchet.export(), alice_ratchet.export());
 }
