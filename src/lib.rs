@@ -147,6 +147,8 @@
 
 extern crate alloc;
 
+pub use x25519_dalek::{StaticSecret, PublicKey};
+
 mod aead;
 mod dh;
 mod kdf_root;
@@ -156,5 +158,5 @@ pub mod ratchet;
 
 /// Message Header
 pub mod header;
-mod curve;
+pub mod curve;
 

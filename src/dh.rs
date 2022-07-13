@@ -1,7 +1,6 @@
 use core::fmt::{Debug, Formatter};
 use core::fmt;
 use alloc::vec::Vec;
-use rand_core::OsRng;
 use serde::{Serialize, Deserialize};
 use crate::curve::{PrivateKey, PublicKey as PublicKeyT};
 
@@ -45,7 +44,7 @@ impl<T: PrivateKey> Default for DhKeyPair<T> {
 
 impl<T: PrivateKey> DhKeyPair<T> {
     pub fn new() -> Self {
-        let mut rng = OsRng::default();
+        let mut rng = rand::thread_rng();
         let secret = T::random(&mut rng);
         let public = secret.derive_public_key();
         DhKeyPair {
