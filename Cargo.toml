@@ -6,8 +6,8 @@ homepage = "https://github.com/Dione-Software/double-ratchet-2"
 repository = "https://github.com/Dione-Software/double-ratchet-2"
 readme = "README.md"
 keywords = ["double-ratchet", "crypto", "cryptography", "signal"]
-version = "0.4.0-pre.1"
-edition = "2018"
+version = "0.4.0-pre.2"
+edition = "2021"
 license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -32,15 +32,15 @@ zeroize = {version = "1.3", features = ["zeroize_derive"]}
 x25519-dalek = { version = "2.0.0-pre.1", features = ["serde"] }
 typetag = "0.2.1"
 
+[target.'cfg(target_family = "wasm")'.dev-dependencies]
+wasm-bindgen-test = "0.3" 
+
 [dev-dependencies]
 criterion = "0.3.4"
 
 [[bench]]
 name = "double_ratchet_bench"
 harness = false
-
-[profile.release]
-lto = true
 
 [features]
 wasm = ["getrandom/js"]

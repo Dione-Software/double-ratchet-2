@@ -1,14 +1,20 @@
 use double_ratchet_2::ratchet::{Ratchet, RatchetEncHeader};
+
 extern crate alloc;
 
-#[test]
+#[cfg(target_family = "wasm")]
+use wasm_bindgen_test::*;
+
+#[cfg_attr(not(target_family = "wasm"), test)]
+#[cfg_attr(target_family = "wasm", wasm_bindgen_test)]
 fn ratchet_init() {
     let sk = [1; 32];
     let (_bob_ratchet, public_key) = Ratchet::<x25519_dalek::StaticSecret>::init_bob(sk);
     let _alice_ratchet = Ratchet::<x25519_dalek::StaticSecret>::init_alice(sk, public_key);
 }
 
-#[test]
+#[cfg_attr(not(target_family = "wasm"), test)]
+#[cfg_attr(target_family = "wasm", wasm_bindgen_test)]
 fn ratchet_enc_single() {
     let sk = [1; 32];
     let (mut bob_ratchet, public_key) = Ratchet::<x25519_dalek::StaticSecret>::init_bob(sk);
@@ -19,7 +25,8 @@ fn ratchet_enc_single() {
     assert_eq!(data, decrypted)
 }
 
-#[test]
+#[cfg_attr(not(target_family = "wasm"), test)]
+#[cfg_attr(target_family = "wasm", wasm_bindgen_test)]
 fn ratchet_enc_skip() {
     let sk = [1; 32];
     let (mut bob_ratchet, public_key) = Ratchet::<x25519_dalek::StaticSecret>::init_bob(sk);
@@ -35,8 +42,8 @@ fn ratchet_enc_skip() {
     assert!(comp_res)
 }
 
-#[test]
 #[should_panic]
+#[test]
 fn ratchet_panic_bob() {
     let sk = [1; 32];
     let (mut bob_ratchet, _) = Ratchet::<x25519_dalek::StaticSecret>::init_bob(sk);
@@ -44,7 +51,8 @@ fn ratchet_panic_bob() {
     let (_, _, _) = bob_ratchet.ratchet_encrypt(&data, b"");
 }
 
-#[test]
+#[cfg_attr(not(target_family = "wasm"), test)]
+#[cfg_attr(target_family = "wasm", wasm_bindgen_test)]
 fn ratchet_encryt_decrypt_four() {
     let sk = [1; 32];
     let data = include_bytes!("../src/dh.rs").to_vec();
@@ -58,7 +66,8 @@ fn ratchet_encryt_decrypt_four() {
     assert!(comp_res)
 }
 
-#[test]
+#[cfg_attr(not(target_family = "wasm"), test)]
+#[cfg_attr(target_family = "wasm", wasm_bindgen_test)]
 fn ratchet_ench_init() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
@@ -70,7 +79,8 @@ fn ratchet_ench_init() {
                                                       shared_hka, shared_nhkb);
 }
 
-#[test]
+#[cfg_attr(not(target_family = "wasm"), test)]
+#[cfg_attr(target_family = "wasm", wasm_bindgen_test)]
 fn ratchet_ench_enc_single() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
@@ -88,7 +98,8 @@ fn ratchet_ench_enc_single() {
     assert_eq!(data, decrypted)
 }
 
-#[test]
+#[cfg_attr(not(target_family = "wasm"), test)]
+#[cfg_attr(target_family = "wasm", wasm_bindgen_test)]
 fn ratchet_ench_enc_skip() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
@@ -124,7 +135,8 @@ fn ratchet_ench_panic_bob() {
     let (_, _, _) = bob_ratchet.ratchet_encrypt(&data, b"");
 }
 
-#[test]
+#[cfg_attr(not(target_family = "wasm"), test)]
+#[cfg_attr(target_family = "wasm", wasm_bindgen_test)]
 fn ratchet_ench_decrypt_four() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
@@ -178,7 +190,8 @@ fn ratchet_ench_enc_skip_panic() {
     }
 }
 
-#[test]
+#[cfg_attr(not(target_family = "wasm"), test)]
+#[cfg_attr(target_family = "wasm", wasm_bindgen_test)]
 fn import_export() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
