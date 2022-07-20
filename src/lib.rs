@@ -1,7 +1,5 @@
 //! Implementation of the double ratchet system/encryption as specified by [Signal][1].
 //!
-//! **WARNING! This implementation uses P-256 NOT Curve25519 as specified by Signal!**
-//!
 //! The implementation follows the cryptographic recommendations provided by [Signal][2].
 //! The AEAD Algorithm uses a constant Nonce. This might be changed in the future.
 //!
@@ -10,10 +8,11 @@
 //! ## Standard:
 //! ```
 //! use double_ratchet_2::ratchet::Ratchet;
+//! use x25519_dalek::StaticSecret;
 //!
 //! let sk = [1; 32];                                                 // Initial Key created by a symmetric key agreement protocol
-//! let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);        // Creating Bobs Ratchet (returns Bobs PublicKey)
-//! let mut alice_ratchet = Ratchet::init_alice(sk, public_key);      // Creating Alice Ratchet with Bobs PublicKey
+//! let (mut bob_ratchet, public_key) = Ratchet::<StaticSecret>::init_bob(sk);        // Creating Bobs Ratchet (returns Bobs PublicKey)
+//! let mut alice_ratchet = Ratchet::<StaticSecret>::init_alice(sk, public_key);      // Creating Alice Ratchet with Bobs PublicKey
 //! let data = b"Hello World".to_vec();                               // Data to be encrypted
 //! let ad = b"Associated Data";                                      // Associated Data
 //!
@@ -25,10 +24,11 @@
 //! ## With lost message:
 //! ```
 //! # use double_ratchet_2::ratchet::Ratchet;
+//! use x25519_dalek::StaticSecret;
 //!
 //! let sk = [1; 32];                                                 // Initial Key created by a symmetric key agreement protocol
-//! let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);        // Creating Bobs Ratchet (returns Bobs PublicKey)
-//! let mut alice_ratchet = Ratchet::init_alice(sk, public_key);      // Creating Alice Ratchet with Bobs PublicKey
+//! let (mut bob_ratchet, public_key) = Ratchet::<StaticSecret>::init_bob(sk);        // Creating Bobs Ratchet (returns Bobs PublicKey)
+//! let mut alice_ratchet = Ratchet::<StaticSecret>::init_alice(sk, public_key);      // Creating Alice Ratchet with Bobs PublicKey
 //! let data = b"Hello World".to_vec();                               // Data to be encrypted
 //! let ad = b"Associated Data";                                      // Associated Data
 //!
@@ -46,9 +46,10 @@
 //!
 //! ```should_panic
 //! use double_ratchet_2::ratchet::Ratchet;
+//! use x25519_dalek::StaticSecret;
 //! let sk = [1; 32];
 //! let ad = b"Associated Data";
-//! let (mut bob_ratchet, _) = Ratchet::init_bob(sk);
+//! let (mut bob_ratchet, _) = Ratchet::<StaticSecret>::init_bob(sk);
 //! let data = b"Hello World".to_vec();
 //!
 //! let (_, _, _) = bob_ratchet.ratchet_encrypt(&data, ad);
@@ -59,10 +60,11 @@
 //!
 //! ```
 //! use double_ratchet_2::ratchet::Ratchet;
+//! use x25519_dalek::StaticSecret;
 //! let sk = [1; 32];
 //!
-//! let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);
-//! let mut alice_ratchet = Ratchet::init_alice(sk, public_key);
+//! let (mut bob_ratchet, public_key) = Ratchet::<StaticSecret>::init_bob(sk);
+//! let mut alice_ratchet = Ratchet::<StaticSecret>::init_alice(sk, public_key);
 //!
 //! let data = b"Hello World".to_vec();
 //! let ad = b"Associated Data";
@@ -81,13 +83,13 @@
 //! # use double_ratchet_2::ratchet::Ratchet;
 //! # use double_ratchet_2::header::Header;
 //! # let sk = [1; 32];
-//! # let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);
-//! # let mut alice_ratchet = Ratchet::init_alice(sk, public_key);
+//! # let (mut bob_ratchet, public_key) = Ratchet::<x25519_dalek::StaticSecret>::init_bob(sk);
+//! # let mut alice_ratchet = Ratchet::<x25519_dalek::StaticSecret>::init_alice(sk, public_key);
 //! # let data = b"hello World".to_vec();
 //! # let ad = b"Associated Data";
 //! # let (header, _, _) = alice_ratchet.ratchet_encrypt(&data, ad);
-//! let header_bytes: Vec<u8> = header.clone().into();
-//! let header_const = Header::from(header_bytes);
+//! let header_bytes: Vec<u8> = header.concat(b"");
+//! let header_const = Header::<x25519_dalek::PublicKey>::from(header_bytes.as_slice());
 //! assert_eq!(header, header_const);
 //! ```
 //!
@@ -95,12 +97,13 @@
 //!
 //! ```
 //! use double_ratchet_2::ratchet::RatchetEncHeader;
+//! use x25519_dalek::StaticSecret;
 //! let sk = [0; 32];
 //! let shared_hka = [1; 32];
 //! let shared_nhkb = [2; 32];
 //!
-//! let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk, shared_hka, shared_nhkb);
-//! let mut alice_ratchet = RatchetEncHeader::init_alice(sk, public_key, shared_hka, shared_nhkb);
+//! let (mut bob_ratchet, public_key) = RatchetEncHeader::<StaticSecret>::init_bob(sk, shared_hka, shared_nhkb);
+//! let mut alice_ratchet = RatchetEncHeader::<StaticSecret>::init_alice(sk, public_key, shared_hka, shared_nhkb);
 //! let data = b"Hello World".to_vec();
 //! let ad = b"Associated Data";
 //!
@@ -114,13 +117,14 @@
 //! maybe useful for saving Ratchets to and loading from a file.
 //! ```
 //! # use double_ratchet_2::ratchet::RatchetEncHeader;
+//! use x25519_dalek::StaticSecret;
 //! # let sk = [0; 32];
 //! # let shared_hka = [1; 32];
 //! # let shared_nhkb = [2; 32];
-//! let (bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk, shared_hka, shared_nhkb);
+//! let (bob_ratchet, public_key) = RatchetEncHeader::<StaticSecret>::init_bob(sk, shared_hka, shared_nhkb);
 //! let ex_ratchet = bob_ratchet.export();
-//! let im_ratchet = RatchetEncHeader::import(&ex_ratchet).unwrap();
-//! assert_eq!(im_ratchet, bob_ratchet)
+//! let im_ratchet = RatchetEncHeader::<StaticSecret>::import(&ex_ratchet).unwrap();
+//! assert_eq!(im_ratchet.export(), bob_ratchet.export())
 //! ```
 //!
 //! # Features
@@ -137,12 +141,11 @@
 //! [2]: https://signal.org/docs/specifications/doubleratchet/#recommended-cryptographic-algorithms
 //! [3]: https://signal.org/docs/specifications/doubleratchet/#double-ratchet-with-header-encryption
 
-#![no_std]
 #![allow(stable_features)]
 
 extern crate alloc;
 
-pub use p256::PublicKey;
+pub use x25519_dalek::{StaticSecret, PublicKey};
 
 mod aead;
 mod dh;
@@ -153,4 +156,5 @@ pub mod ratchet;
 
 /// Message Header
 pub mod header;
+pub mod curve;
 

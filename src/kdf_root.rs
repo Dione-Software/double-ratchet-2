@@ -8,10 +8,9 @@ use core::convert::TryInto;
 
 #[cfg(test)]
 use crate::dh::gen_shared_secret;
-use p256::ecdh::SharedSecret;
 
-pub fn kdf_rk(rk: &[u8; 32], dh_out: &SharedSecret) -> ([u8; 32], [u8; 32]) {
-    let h = Hkdf::<Sha512>::new(Some(rk), dh_out.as_bytes());
+pub fn kdf_rk(rk: &[u8; 32], dh_out: &[u8]) -> ([u8; 32], [u8; 32]) {
+    let h = Hkdf::<Sha512>::new(Some(rk), dh_out);
     let mut okm = [0u8; 64];
     let info = b"Root Key Info";
     h.expand(info, &mut okm).unwrap();
@@ -22,8 +21,8 @@ pub fn kdf_rk(rk: &[u8; 32], dh_out: &SharedSecret) -> ([u8; 32], [u8; 32]) {
          .expect("Incorrect length"))
 }
 
-pub fn kdf_rk_he(rk: &[u8; 32], dh_out: &SharedSecret) -> ([u8; 32], [u8; 32], [u8; 32]) {
-    let h = Hkdf::<Sha512>::new(Some(rk), dh_out.as_bytes());
+pub fn kdf_rk_he(rk: &[u8; 32], dh_out: &[u8]) -> ([u8; 32], [u8; 32], [u8; 32]) {
+    let h = Hkdf::<Sha512>::new(Some(rk), dh_out);
     let mut okm = [0u8; 96];
     let info = b"Root Key Generator";
     h.expand(info, &mut okm).unwrap();
@@ -40,7 +39,7 @@ pub fn kdf_rk_he(rk: &[u8; 32], dh_out: &SharedSecret) -> ([u8; 32], [u8; 32], [
 pub fn gen_ck() -> [u8; 32] {
     let shared_secret = gen_shared_secret();
     let rk = [0; 32];
-    let (_, ck) = kdf_rk(&rk, &shared_secret);
+    let (_, ck) = kdf_rk(&rk, shared_secret.as_bytes());
     ck
 }
 
@@ -53,8 +52,8 @@ mod tests {
     fn kdf_root_ratchet() {
         let rk = [0; 32];
         let shared_secret = gen_shared_secret();
-        let (rk1, _) = kdf_rk(&rk, &shared_secret);
-        let (rk2, _) = kdf_rk(&rk1, &shared_secret);
+        let (rk1, _) = kdf_rk(&rk, shared_secret.as_bytes());
+        let (rk2, _) = kdf_rk(&rk1, shared_secret.as_bytes());
         assert_ne!(rk1, rk2)
     }
 }
