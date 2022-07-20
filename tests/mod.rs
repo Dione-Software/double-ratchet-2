@@ -5,6 +5,9 @@ extern crate alloc;
 #[cfg(target_family = "wasm")]
 use wasm_bindgen_test::*;
 
+#[cfg(all(target_family = "wasm", feature = "browser"))]
+wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
+
 #[cfg_attr(not(target_family = "wasm"), test)]
 #[cfg_attr(target_family = "wasm", wasm_bindgen_test)]
 fn ratchet_init() {

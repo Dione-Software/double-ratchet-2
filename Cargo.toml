@@ -44,3 +44,4 @@ harness = false
 
 [features]
 wasm = ["getrandom/js"]
+browser = []

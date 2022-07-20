@@ -28,6 +28,19 @@ jobs:
       
       - name: Run cargo build
         run: cargo build
+
+  test-wasm:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - run: wasm-pack test --headless --chrome --features wasm,browser
+      - run: wasm-pack test --headless --firefox --features wasm,browser
+      - run: wasm-pack test --headless --safari --features wasm,browser
+      - run: wasm-pack test --headless --node --features wasm
      
   lint:
       runs-on: ubuntu-latest
