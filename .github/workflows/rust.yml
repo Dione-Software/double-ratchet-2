@@ -40,7 +40,7 @@ jobs:
       - run: wasm-pack test --headless --chrome --features wasm,browser
       - run: wasm-pack test --headless --firefox --features wasm,browser
       - run: wasm-pack test --headless --safari --features wasm,browser
-      - run: wasm-pack test --headless --node --features wasm
+      - run: wasm-pack test --node --features wasm
      
   lint:
       runs-on: ubuntu-latest
