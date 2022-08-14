@@ -1,10 +1,10 @@
-use double_ratchet_2::ratchet::{Ratchet, RatchetEncHeader};
+use double_ratchet_2::{ratchet::{Ratchet, RatchetEncHeader}, StaticSecret};
 use criterion::{Criterion, criterion_main, criterion_group};
 
 fn ratchet_enc_single() {
     let sk = [1; 32];
-    let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);
-    let mut alice_ratchet = Ratchet::init_alice(sk, public_key);
+    let (mut bob_ratchet, public_key) = Ratchet::<StaticSecret>::init_bob(sk);
+    let mut alice_ratchet = Ratchet::<StaticSecret>::init_alice(sk, public_key);
     let data = include_bytes!("../src/header.rs").to_vec();
     let (header, encrypted, nonce) = alice_ratchet.ratchet_encrypt(&data, b"");
     let _decrypted = bob_ratchet.ratchet_decrypt(&header, &encrypted, &nonce, b"");
@@ -16,8 +16,8 @@ fn criterion_benchmark_1(c: &mut Criterion) {
 
 fn ratchet_enc_skip() {
     let sk = [1; 32];
-    let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);
-    let mut alice_ratchet = Ratchet::init_alice(sk, public_key);
+    let (mut bob_ratchet, public_key) = Ratchet::<StaticSecret>::init_bob(sk);
+    let mut alice_ratchet = Ratchet::<StaticSecret>::init_alice(sk, public_key);
     let data = include_bytes!("../src/header.rs").to_vec();
     let (header1, encrypted1, nonce1) = alice_ratchet.ratchet_encrypt(&data, b"");
     let (header2, encrypted2, nonce2) = alice_ratchet.ratchet_encrypt(&data, b"");
@@ -32,8 +32,8 @@ fn criterion_benchmark_2(c: &mut Criterion) {
 fn ratchet_encryt_decrypt_four() {
     let sk = [1; 32];
     let data = include_bytes!("../src/dh.rs").to_vec();
-    let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);
-    let mut alice_ratchet = Ratchet::init_alice(sk, public_key);
+    let (mut bob_ratchet, public_key) = Ratchet::<StaticSecret>::init_bob(sk);
+    let mut alice_ratchet = Ratchet::<StaticSecret>::init_alice(sk, public_key);
     let (header1, encrypted1, nonce1) = alice_ratchet.ratchet_encrypt(&data, b"");
     let _decrypted1 = bob_ratchet.ratchet_decrypt(&header1, &encrypted1, &nonce1, b"");
     let (header2, encrypted2, nonce2) = bob_ratchet.ratchet_encrypt(&data, b"");
@@ -48,10 +48,10 @@ fn ratchet_ench_enc_single() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
     let shared_nhkb = [3; 32];
-    let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+    let (mut bob_ratchet, public_key) = RatchetEncHeader::<StaticSecret>::init_bob(sk,
                                                                    shared_hka,
                                                                    shared_nhkb);
-    let mut alice_ratchet = RatchetEncHeader::init_alice(sk,
+    let mut alice_ratchet = RatchetEncHeader::<StaticSecret>::init_alice(sk,
                                                          public_key,
                                                          shared_hka,
                                                          shared_nhkb);
@@ -69,10 +69,10 @@ fn ratchet_ench_enc_skip() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
     let shared_nhkb = [3; 32];
-    let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+    let (mut bob_ratchet, public_key) = RatchetEncHeader::<StaticSecret>::init_bob(sk,
                                                                    shared_hka,
                                                                    shared_nhkb);
-    let mut alice_ratchet = RatchetEncHeader::init_alice(sk,
+    let mut alice_ratchet = RatchetEncHeader::<StaticSecret>::init_alice(sk,
                                                          public_key,
                                                          shared_hka,
                                                          shared_nhkb);
@@ -91,10 +91,10 @@ fn ratchet_ench_decrypt_four() {
     let sk = [1; 32];
     let shared_hka = [2; 32];
     let shared_nhkb = [3; 32];
-    let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk,
+    let (mut bob_ratchet, public_key) = RatchetEncHeader::<StaticSecret>::init_bob(sk,
                                                                    shared_hka,
                                                                    shared_nhkb);
-    let mut alice_ratchet = RatchetEncHeader::init_alice(sk, public_key, shared_hka, shared_nhkb);
+    let mut alice_ratchet = RatchetEncHeader::<StaticSecret>::init_alice(sk, public_key, shared_hka, shared_nhkb);
     let data = include_bytes!("../src/dh.rs").to_vec();
     let (header1, encrypted1, nonce1) = alice_ratchet.ratchet_encrypt(&data, b"");
     let _decrypted1 = bob_ratchet.ratchet_decrypt(&header1, &encrypted1, &nonce1, b"");

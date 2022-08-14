@@ -8,8 +8,6 @@
 
 Implementation of the double ratchet system/encryption as specified by [Signal][1].
 
-**WARNING! This implementation uses P-256 NOT Curve25519 as specified by Signal!**
-
 The implementation follows the cryptographic recommendations provided by [Signal][2].
 The AEAD Algorithm uses a constant Nonce. This might be changed in the future.
 
@@ -18,10 +16,11 @@ The AEAD Algorithm uses a constant Nonce. This might be changed in the future.
 ### Standard:
 ```rust
 use double_ratchet_2::ratchet::Ratchet;
+use x25519_dalek::StaticSecret;
 
 let sk = [1; 32];                                                 // Initial Key created by a symmetric key agreement protocol
-let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);        // Creating Bobs Ratchet (returns Bobs PublicKey)
-let mut alice_ratchet = Ratchet::init_alice(sk, public_key);      // Creating Alice Ratchet with Bobs PublicKey
+let (mut bob_ratchet, public_key) = Ratchet::<StaticSecret>::init_bob(sk);        // Creating Bobs Ratchet (returns Bobs PublicKey)
+let mut alice_ratchet = Ratchet::<StaticSecret>::init_alice(sk, public_key);      // Creating Alice Ratchet with Bobs PublicKey
 let data = b"Hello World".to_vec();                               // Data to be encrypted
 let ad = b"Associated Data";                                      // Associated Data
 
@@ -32,10 +31,11 @@ assert_eq!(data, decrypted)
 
 ### With lost message:
 ```rust
+use x25519_dalek::StaticSecret;
 
 let sk = [1; 32];                                                 // Initial Key created by a symmetric key agreement protocol
-let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);        // Creating Bobs Ratchet (returns Bobs PublicKey)
-let mut alice_ratchet = Ratchet::init_alice(sk, public_key);      // Creating Alice Ratchet with Bobs PublicKey
+let (mut bob_ratchet, public_key) = Ratchet::<StaticSecret>::init_bob(sk);        // Creating Bobs Ratchet (returns Bobs PublicKey)
+let mut alice_ratchet = Ratchet::<StaticSecret>::init_alice(sk, public_key);      // Creating Alice Ratchet with Bobs PublicKey
 let data = b"Hello World".to_vec();                               // Data to be encrypted
 let ad = b"Associated Data";                                      // Associated Data
 
@@ -53,9 +53,10 @@ assert!(comp);
 
 ```rust
 use double_ratchet_2::ratchet::Ratchet;
+use x25519_dalek::StaticSecret;
 let sk = [1; 32];
 let ad = b"Associated Data";
-let (mut bob_ratchet, _) = Ratchet::init_bob(sk);
+let (mut bob_ratchet, _) = Ratchet::<StaticSecret>::init_bob(sk);
 let data = b"Hello World".to_vec();
 
 let (_, _, _) = bob_ratchet.ratchet_encrypt(&data, ad);
@@ -66,10 +67,11 @@ However bob can (of course) also encrypt messages. This is possible, after decry
 
 ```rust
 use double_ratchet_2::ratchet::Ratchet;
+use x25519_dalek::StaticSecret;
 let sk = [1; 32];
 
-let (mut bob_ratchet, public_key) = Ratchet::init_bob(sk);
-let mut alice_ratchet = Ratchet::init_alice(sk, public_key);
+let (mut bob_ratchet, public_key) = Ratchet::<StaticSecret>::init_bob(sk);
+let mut alice_ratchet = Ratchet::<StaticSecret>::init_alice(sk, public_key);
 
 let data = b"Hello World".to_vec();
 let ad = b"Associated Data";
@@ -85,8 +87,8 @@ assert_eq!(data, decrypted2);
 ### Constructing and Deconstructing Headers
 
 ```rust
-let header_bytes: Vec<u8> = header.clone().into();
-let header_const = Header::from(header_bytes);
+let header_bytes: Vec<u8> = header.concat(b"");
+let header_const = Header::<x25519_dalek::PublicKey>::from(header_bytes.as_slice());
 assert_eq!(header, header_const);
 ```
 
@@ -94,12 +96,13 @@ assert_eq!(header, header_const);
 
 ```rust
 use double_ratchet_2::ratchet::RatchetEncHeader;
+use x25519_dalek::StaticSecret;
 let sk = [0; 32];
 let shared_hka = [1; 32];
 let shared_nhkb = [2; 32];
 
-let (mut bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk, shared_hka, shared_nhkb);
-let mut alice_ratchet = RatchetEncHeader::init_alice(sk, public_key, shared_hka, shared_nhkb);
+let (mut bob_ratchet, public_key) = RatchetEncHeader::<StaticSecret>::init_bob(sk, shared_hka, shared_nhkb);
+let mut alice_ratchet = RatchetEncHeader::<StaticSecret>::init_alice(sk, public_key, shared_hka, shared_nhkb);
 let data = b"Hello World".to_vec();
 let ad = b"Associated Data";
 
@@ -112,10 +115,11 @@ assert_eq!(data, decrypted)
 This ratchet implements import and export functionality. This works over a bincode backend and
 maybe useful for saving Ratchets to and loading from a file.
 ```rust
-let (bob_ratchet, public_key) = RatchetEncHeader::init_bob(sk, shared_hka, shared_nhkb);
+use x25519_dalek::StaticSecret;
+let (bob_ratchet, public_key) = RatchetEncHeader::<StaticSecret>::init_bob(sk, shared_hka, shared_nhkb);
 let ex_ratchet = bob_ratchet.export();
-let im_ratchet = RatchetEncHeader::import(&ex_ratchet);
-assert_eq!(im_ratchet, bob_ratchet)
+let im_ratchet = RatchetEncHeader::<StaticSecret>::import(&ex_ratchet).unwrap();
+assert_eq!(im_ratchet.export(), bob_ratchet.export())
 ```
 
 ## Features
@@ -132,6 +136,6 @@ TODO:
 [2]: https://signal.org/docs/specifications/doubleratchet/#recommended-cryptographic-algorithms
 [3]: https://signal.org/docs/specifications/doubleratchet/#double-ratchet-with-header-encryption
 
-Current version: 0.4.0
+Current version: 0.4.0-pre.1
 
 License: MIT
