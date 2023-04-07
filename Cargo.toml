@@ -19,7 +19,7 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 p256 = {version = "0.10", features = ["ecdh", "arithmetic", "pem", "jwk"]}
 rand_core = {version = "0.6"}
-getrandom = {version = "0.2.3"}
+getrandom = {version = "0.2.9"}
 hkdf = "0.12"
 hmac = "0.12"
 aes-gcm-siv = {version = "0.10.3"}
